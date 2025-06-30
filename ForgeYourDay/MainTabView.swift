@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct MainTabView: View {
+    init() {
+        UITabBar.appearance().backgroundColor = UIColor(Color.primaryLight)
+        UITabBar.appearance().unselectedItemTintColor = UIColor(Color.secondary)
+    }
     var body: some View {
         TabView {
             HomeView()
@@ -19,6 +23,7 @@ struct MainTabView: View {
                     Text("Profile")
                 }
         }
+        .accentColor(.accent)
     }
 }
 

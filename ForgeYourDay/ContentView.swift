@@ -8,14 +8,28 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isAuthenticated = false
+    @State private var showRegister = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            Color.primaryLight.ignoresSafeArea()
+            if isAuthenticated {
+                MainTabView()
+            } else {
+                if showRegister {
+                    RegisterView(
+                        onRegister: { isAuthenticated = true },
+                        onBack: { showRegister = false }
+                    )
+                } else {
+                    LoginView(
+                        onLogin: { isAuthenticated = true },
+                        onRegister: { showRegister = true }
+                    )
+                }
+            }
         }
-        .padding()
     }
 }
 
