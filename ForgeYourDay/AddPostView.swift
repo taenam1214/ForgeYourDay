@@ -4,6 +4,8 @@ struct AddPostView: View {
     @State private var showTaskModal: Bool = false
     @State private var taskInputs: [String] = Array(repeating: "", count: 3)
     @State private var todaysTasks: [String] = []
+    @State private var showAddTaskField: Bool = false
+    @State private var newTaskText: String = ""
     let taskKey = "dailyTasksArray"
     let taskDateKey = "dailyTasksDate"
     
@@ -39,6 +41,17 @@ struct AddPostView: View {
         showTaskModal = false
     }
     
+    func addNewTask() {
+        let trimmed = newTaskText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        todaysTasks.append(trimmed)
+        let defaults = UserDefaults.standard
+        defaults.setValue(todaysTasks, forKey: taskKey)
+        defaults.setValue(Date(), forKey: taskDateKey)
+        newTaskText = ""
+        showAddTaskField = false
+    }
+    
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: Theme.padding) {
@@ -61,6 +74,32 @@ struct AddPostView: View {
                             Spacer()
                         }
                         .padding(.horizontal)
+                    }
+                    if showAddTaskField {
+                        HStack {
+                            TextField("New Task", text: $newTaskText)
+                                .padding()
+                                .background(Color.secondary.opacity(0.08))
+                                .cornerRadius(Theme.cornerRadius)
+                                .font(.body)
+                            Button(action: addNewTask) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.accent)
+                                    .font(.title2)
+                            }
+                        }
+                        .padding(.horizontal)
+                    } else {
+                        Button(action: { showAddTaskField = true }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.accent)
+                                Text("Add another task")
+                                    .font(.body)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 4)
                     }
                 } else {
                     Text("No tasks set for today.")
