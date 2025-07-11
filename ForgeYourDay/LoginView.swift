@@ -47,7 +47,8 @@ struct LoginView: View {
             }
             // Login button
             Button(action: {
-                if username == "taenam356" && password == "123123123" {
+                let validUsers = ["Kimia", "Taenam", "Zay"]
+                if validUsers.contains(username) && password == "chanceapp" {
                     showError = false
                     onLogin()
                 } else {
