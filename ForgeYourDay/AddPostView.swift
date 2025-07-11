@@ -118,46 +118,71 @@ struct AddPostView: View {
             .navigationTitle("Add Post")
             .background(Color.primaryLight.ignoresSafeArea())
             .sheet(isPresented: $showTaskModal) {
-                VStack(spacing: 20) {
-                    Text("What will you forge today?")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .padding(.top)
-                    Text("Set your daily tasks. They will disappear after 24 hours.")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                    ForEach(taskInputs.indices, id: \.self) { idx in
-                        TextField("Task #\(idx + 1)", text: $taskInputs[idx])
-                            .padding()
-                            .background(Color.secondary.opacity(0.08))
-                            .cornerRadius(Theme.cornerRadius)
-                            .font(.body)
-                            .padding(.horizontal)
-                    }
-                    Button(action: {
-                        taskInputs.append("")
-                    }) {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.accent)
-                            Text("Add another task")
-                                .font(.body)
+                ZStack {
+                    Color.black.opacity(0.15)
+                        .ignoresSafeArea()
+                    VStack(spacing: 0) {
+                        Spacer()
+                        VStack(spacing: 0) {
+                            VStack(spacing: 18) {
+                                Text("What will you forge today?")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .padding(.top, 28)
+                                    .padding(.horizontal, 24)
+                                    .multilineTextAlignment(.center)
+                                Text("Set your daily tasks. They will disappear after 24 hours.")
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 24)
+                                    .multilineTextAlignment(.center)
+                                VStack(spacing: 12) {
+                                    ForEach(taskInputs.indices, id: \.self) { idx in
+                                        TextField("Task #\(idx + 1)", text: $taskInputs[idx])
+                                            .padding(.vertical, 14)
+                                            .padding(.horizontal, 16)
+                                            .background(Color.secondary.opacity(0.08))
+                                            .cornerRadius(Theme.cornerRadius)
+                                            .font(.body)
+                                    }
+                                    Button(action: {
+                                        taskInputs.append("")
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "plus.circle.fill")
+                                                .foregroundColor(.accent)
+                                            Text("Add another task")
+                                                .font(.body)
+                                        }
+                                        .padding(.vertical, 8)
+                                        .frame(maxWidth: .infinity)
+                                    }
+                                    .background(Color.clear)
+                                }
+                                .padding(.horizontal, 24)
+                                Button(action: saveTasks) {
+                                    Text("Save Tasks")
+                                        .font(.manrope(size: 18, weight: .bold))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, Theme.smallPadding * 2)
+                                        .background(Color.accent)
+                                        .foregroundColor(.primaryLight)
+                                        .cornerRadius(Theme.cornerRadius)
+                                        .shadow(color: Color.accent.opacity(0.18), radius: 6, y: 2)
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.bottom, 24)
+                            }
                         }
+                        .background(
+                            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                .fill(Color.primaryLight)
+                                .shadow(color: Color.black.opacity(0.08), radius: 16, y: 4)
+                        )
+                        .padding(.horizontal, 16)
+                        Spacer()
                     }
-                    .padding(.bottom, 8)
-                    Button(action: saveTasks) {
-                        Text("Save Tasks")
-                            .font(.manrope(size: 18, weight: .bold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Theme.smallPadding * 1.5)
-                            .background(Color.accent)
-                            .foregroundColor(.primaryLight)
-                            .cornerRadius(Theme.cornerRadius)
-                    }
-                    .padding(.horizontal)
-                    Spacer()
                 }
-                .background(Color.primaryLight.ignoresSafeArea())
             }
         }
     }
