@@ -14,7 +14,7 @@ struct MainTabView: View {
                     Image(systemName: "house")
                     Text("Home")
                 }
-            AddPostView()
+            AddPostView(username: username)
                 .tabItem {
                     Image(systemName: "plus.circle")
                     Text("Add")

@@ -1,13 +1,15 @@
 import SwiftUI
 
 struct AddPostView: View {
+    let username: String
     @State private var showTaskModal: Bool = false
     @State private var taskInputs: [String] = Array(repeating: "", count: 3)
     @State private var todaysTasks: [String] = []
     @State private var showAddTaskField: Bool = false
     @State private var newTaskText: String = ""
-    let taskKey = "dailyTasksArray"
-    let taskDateKey = "dailyTasksDate"
+    
+    var taskKey: String { "dailyTasksArray_\(username)" }
+    var taskDateKey: String { "dailyTasksDate_\(username)" }
     
     func checkTaskStatus() {
         let defaults = UserDefaults.standard
@@ -162,5 +164,5 @@ struct AddPostView: View {
 }
 
 #Preview {
-    AddPostView()
+    AddPostView(username: "taenam356")
 } 
