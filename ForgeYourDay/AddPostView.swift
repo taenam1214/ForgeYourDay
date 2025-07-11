@@ -18,17 +18,21 @@ struct AddPostView: View {
                 todaysTasks = tasks
                 showTaskModal = false
             } else {
-                // 24 hours passed, clear tasks
+                // 24 hours passed, clear tasks and input fields
                 defaults.removeObject(forKey: taskKey)
                 defaults.removeObject(forKey: taskDateKey)
                 showTaskModal = true
                 taskInputs = Array(repeating: "", count: 3)
                 todaysTasks = []
+                newTaskText = ""
+                showAddTaskField = false
             }
         } else {
             showTaskModal = true
             taskInputs = Array(repeating: "", count: 3)
             todaysTasks = []
+            newTaskText = ""
+            showAddTaskField = false
         }
     }
     
