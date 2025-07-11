@@ -16,7 +16,10 @@ struct ContentView: View {
         ZStack {
             Color.primaryLight.ignoresSafeArea()
             if isAuthenticated, let username = loggedInUsername {
-                MainTabView(username: username)
+                MainTabView(username: username, onLogout: {
+                    loggedInUsername = nil
+                    isAuthenticated = false
+                })
             } else {
                 if showRegister {
                     RegisterView(

@@ -2,8 +2,10 @@ import SwiftUI
 
 struct MainTabView: View {
     let username: String
-    init(username: String) {
+    let onLogout: () -> Void
+    init(username: String, onLogout: @escaping () -> Void) {
         self.username = username
+        self.onLogout = onLogout
         UITabBar.appearance().backgroundColor = UIColor(Color.primaryLight)
         UITabBar.appearance().unselectedItemTintColor = UIColor(Color.secondary)
     }
@@ -19,7 +21,7 @@ struct MainTabView: View {
                     Image(systemName: "plus.circle")
                     Text("Add")
                 }
-            ProfileView(username: username)
+            ProfileView(username: username, onLogout: onLogout)
                 .tabItem {
                     Image(systemName: "person")
                     Text("Profile")
@@ -30,5 +32,5 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView(username: "taenam356")
+    MainTabView(username: "taenam356", onLogout: {})
 } 

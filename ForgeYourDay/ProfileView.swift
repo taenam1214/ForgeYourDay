@@ -4,6 +4,7 @@ struct ProfileView: View {
     @State private var profileImage: Image? = Image(systemName: "person.crop.circle.fill")
     @State private var showingImagePicker = false
     let username: String
+    let onLogout: () -> Void
     @State private var tasksCompleted: Int = 42 // Example value
     @State private var motivationalQuote: String = "Stay productive, stay positive!"
     
@@ -66,6 +67,18 @@ struct ProfileView: View {
                         .cornerRadius(Theme.cornerRadius)
                 }
                 .padding(.horizontal, Theme.padding)
+                // Logout button
+                Button(action: onLogout) {
+                    Text("Log Out")
+                        .font(.manrope(size: 16, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Theme.smallPadding * 1.5)
+                        .background(Color.secondary)
+                        .foregroundColor(.primaryLight)
+                        .cornerRadius(Theme.cornerRadius)
+                }
+                .padding(.horizontal, Theme.padding)
+                .padding(.top, 4)
                 Spacer()
             }
             .navigationBarItems(trailing:
@@ -91,5 +104,5 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView(username: "taenam356")
+    ProfileView(username: "taenam356", onLogout: {})
 } 
