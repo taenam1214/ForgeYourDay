@@ -3,7 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @State private var profileImage: Image? = Image(systemName: "person.crop.circle.fill")
     @State private var showingImagePicker = false
-    @State private var username: String = "taenam356"
+    let username: String
     @State private var tasksCompleted: Int = 42 // Example value
     @State private var motivationalQuote: String = "Stay productive, stay positive!"
     
@@ -91,5 +91,5 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
+    ProfileView(username: "taenam356")
 } 

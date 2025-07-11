@@ -10,12 +10,13 @@ import SwiftUI
 struct ContentView: View {
     @State private var isAuthenticated = false
     @State private var showRegister = false
+    @State private var loggedInUsername: String? = nil
 
     var body: some View {
         ZStack {
             Color.primaryLight.ignoresSafeArea()
-            if isAuthenticated {
-                MainTabView()
+            if isAuthenticated, let username = loggedInUsername {
+                MainTabView(username: username)
             } else {
                 if showRegister {
                     RegisterView(
@@ -24,7 +25,10 @@ struct ContentView: View {
                     )
                 } else {
                     LoginView(
-                        onLogin: { isAuthenticated = true },
+                        onLogin: { username in
+                            loggedInUsername = username
+                            isAuthenticated = true
+                        },
                         onRegister: { showRegister = true }
                     )
                 }

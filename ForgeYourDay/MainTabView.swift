@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct MainTabView: View {
-    init() {
+    let username: String
+    init(username: String) {
+        self.username = username
         UITabBar.appearance().backgroundColor = UIColor(Color.primaryLight)
         UITabBar.appearance().unselectedItemTintColor = UIColor(Color.secondary)
     }
@@ -17,7 +19,7 @@ struct MainTabView: View {
                     Image(systemName: "plus.circle")
                     Text("Add")
                 }
-            ProfileView()
+            ProfileView(username: username)
                 .tabItem {
                     Image(systemName: "person")
                     Text("Profile")
@@ -28,5 +30,5 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView()
+    MainTabView(username: "taenam356")
 } 

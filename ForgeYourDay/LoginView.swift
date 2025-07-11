@@ -4,7 +4,7 @@ struct LoginView: View {
     @State private var username = ""
     @State private var password = ""
     @State private var showError = false
-    var onLogin: () -> Void
+    var onLogin: (String) -> Void
     var onRegister: () -> Void
     
     var body: some View {
@@ -50,7 +50,7 @@ struct LoginView: View {
                 let validUsers = ["Kimia", "Taenam", "Zay"]
                 if validUsers.contains(username) && password == "chanceapp" {
                     showError = false
-                    onLogin()
+                    onLogin(username)
                 } else {
                     showError = true
                 }
@@ -81,5 +81,5 @@ struct LoginView: View {
 }
 
 #Preview {
-    LoginView(onLogin: {}, onRegister: {})
+    LoginView(onLogin: { _ in }, onRegister: {})
 } 
