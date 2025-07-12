@@ -101,7 +101,8 @@ struct AddPostView: View {
                             .foregroundColor(.accent)
                             .shadow(color: Color.accent.opacity(0.18), radius: 8, y: 4)
                     }
-                    .padding([.bottom, .trailing], 28)
+                    .padding(.trailing, 28)
+                    .padding(.bottom, 64)
                     .accessibilityLabel("Add another task")
                 }
                 // Inline add field
@@ -111,7 +112,7 @@ struct AddPostView: View {
                         HStack {
                             TextField("New Task", text: $newTaskText)
                                 .padding()
-                                .background(Color.secondary.opacity(0.08))
+                                .background(Color.primaryLight)
                                 .cornerRadius(Theme.cornerRadius)
                                 .font(.body)
                             Button(action: addNewTask) {
@@ -129,7 +130,7 @@ struct AddPostView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.bottom, 24)
+                        .padding(.bottom, 56)
                     }
                 }
                 // Modal overlay
