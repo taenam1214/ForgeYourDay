@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct MainTabView: View {
-    let username: String
+    @Binding var username: String
     let onLogout: () -> Void
+    let onUsernameChange: (String) -> Void
     
     @State private var selectedTab: Tab = .home
     
@@ -19,7 +20,7 @@ struct MainTabView: View {
                 case .add:
                     AddPostView(username: username)
                 case .profile:
-                    ProfileView(username: username, onLogout: onLogout)
+                    ProfileView(username: username, onLogout: onLogout, onUsernameChange: onUsernameChange)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -58,5 +59,5 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView(username: "taenam", onLogout: {})
+    MainTabView(username: .constant("taenam"), onLogout: {}, onUsernameChange: { _ in })
 } 

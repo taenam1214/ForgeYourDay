@@ -28,15 +28,26 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             Color.primaryLight.ignoresSafeArea()
-            if isAuthenticated, let username = loggedInUsername {
-                MainTabView(username: username, onLogout: {
-                    loggedInUsername = nil
-                    isAuthenticated = false
-                    // Clear persisted auth state
-                    let defaults = UserDefaults.standard
-                    defaults.setValue(false, forKey: authKey)
-                    defaults.removeObject(forKey: usernameKey)
-                })
+            if isAuthenticated, let _ = loggedInUsername {
+                MainTabView(
+                    username: Binding(
+                        get: { loggedInUsername ?? "" },
+                        set: { loggedInUsername = $0 }
+                    ),
+                    onLogout: {
+                        loggedInUsername = nil
+                        isAuthenticated = false
+                        // Clear persisted auth state
+                        let defaults = UserDefaults.standard
+                        defaults.setValue(false, forKey: authKey)
+                        defaults.removeObject(forKey: usernameKey)
+                    },
+                    onUsernameChange: { newUsername in
+                        loggedInUsername = newUsername
+                        let defaults = UserDefaults.standard
+                        defaults.setValue(newUsername, forKey: usernameKey)
+                    }
+                )
             } else {
                 if showRegister {
                     RegisterView(

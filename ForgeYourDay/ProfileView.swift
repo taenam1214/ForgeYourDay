@@ -5,11 +5,13 @@ struct ProfileView: View {
     @State private var showingImagePicker = false
     @State var username: String
     let onLogout: () -> Void
+    let onUsernameChange: (String) -> Void
     @State private var tasksCompleted: Int = 42 // Example value
     @State private var motivationalQuote: String = "Stay productive, stay positive!"
     @State private var editingUsername = false
     @State private var newUsername = ""
     @State private var usernameError = ""
+    @FocusState private var usernameFieldFocused: Bool
     
     var body: some View {
         NavigationView {
@@ -40,6 +42,8 @@ struct ProfileView: View {
                     Text(username)
                         .font(.manrope(size: 22, weight: .bold))
                         .foregroundColor(.primaryDark)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
                         .opacity(editingUsername ? 0 : 1)
                     // Editable text field (invisible when not editing)
                     VStack(spacing: 6) {
@@ -50,7 +54,9 @@ struct ProfileView: View {
                             .padding(.horizontal, 16)
                             .background(Color.primaryLight)
                             .cornerRadius(Theme.cornerRadius)
-                            .overlay(RoundedRectangle(cornerRadius: Theme.cornerRadius).stroke(Color.accent.opacity(0.2)))
+                            .frame(maxWidth: .infinity)
+                            .multilineTextAlignment(.center)
+                            .focused($usernameFieldFocused)
                             .opacity(editingUsername ? 1 : 0)
                         if editingUsername && !usernameError.isEmpty {
                             Text(usernameError)
@@ -60,6 +66,13 @@ struct ProfileView: View {
                     }
                 }
                 .frame(height: 54) // Fixed height to prevent layout shift
+                .onChange(of: editingUsername) { editing in
+                    if editing {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            usernameFieldFocused = true
+                        }
+                    }
+                }
                 // Motivational quote
                 Text(motivationalQuote)
                     .font(.inter(size: 15))
@@ -176,9 +189,10 @@ struct ProfileView: View {
         defaults.setValue(trimmed, forKey: "loggedInUsername")
         usernameError = ""
         editingUsername = false
+        onUsernameChange(trimmed)
     }
 }
 
 #Preview {
-    ProfileView(username: "taenam356", onLogout: {})
+    ProfileView(username: "taenam356", onLogout: {}, onUsernameChange: { _ in })
 } 
