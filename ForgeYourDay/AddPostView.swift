@@ -67,6 +67,7 @@ struct AddPostView: View {
                         Text("Today's Tasks:")
                             .font(.headline)
                             .padding(.top)
+                            .padding(.leading)
                         ForEach(todaysTasks, id: \.self) { task in
                             HStack {
                                 Text(task)
@@ -90,14 +91,13 @@ struct AddPostView: View {
                     Spacer()
                 }
                 .onAppear(perform: checkTaskStatus)
-                .navigationTitle("Add Post")
-                .background(Color.primaryLight.ignoresSafeArea())
+                .background(Color.white.ignoresSafeArea())
                 // Floating Action Button
                 if !showAddTaskField && !showTaskModal {
                     Button(action: { showAddTaskField = true }) {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
-                            .frame(width: 56, height: 56)
+                            .frame(width: 40, height: 40)
                             .foregroundColor(.accent)
                             .shadow(color: Color.accent.opacity(0.18), radius: 8, y: 4)
                     }
@@ -117,6 +117,14 @@ struct AddPostView: View {
                             Button(action: addNewTask) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.accent)
+                                    .font(.title2)
+                            }
+                            Button(action: {
+                                newTaskText = ""
+                                showAddTaskField = false
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
                                     .font(.title2)
                             }
                         }
