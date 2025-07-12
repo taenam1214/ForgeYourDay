@@ -35,7 +35,13 @@ struct ProfileView: View {
                     .offset(x: 4, y: 4)
                 }
                 // Username
-                if editingUsername {
+                ZStack {
+                    // Static text (invisible when editing)
+                    Text(username)
+                        .font(.manrope(size: 22, weight: .bold))
+                        .foregroundColor(.primaryDark)
+                        .opacity(editingUsername ? 0 : 1)
+                    // Editable text field (invisible when not editing)
                     VStack(spacing: 6) {
                         TextField("Username", text: $newUsername)
                             .font(.manrope(size: 22, weight: .bold))
@@ -45,38 +51,15 @@ struct ProfileView: View {
                             .background(Color.primaryLight)
                             .cornerRadius(Theme.cornerRadius)
                             .overlay(RoundedRectangle(cornerRadius: Theme.cornerRadius).stroke(Color.accent.opacity(0.2)))
-                        if !usernameError.isEmpty {
+                            .opacity(editingUsername ? 1 : 0)
+                        if editingUsername && !usernameError.isEmpty {
                             Text(usernameError)
                                 .font(.caption)
                                 .foregroundColor(.accent)
                         }
-                        HStack(spacing: 12) {
-                            Button("Save") {
-                                saveUsername()
-                            }
-                            .font(.manrope(size: 16, weight: .semibold))
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 18)
-                            .background(Color.accent)
-                            .foregroundColor(.primaryLight)
-                            .cornerRadius(Theme.cornerRadius)
-                            Button("Cancel") {
-                                editingUsername = false
-                                usernameError = ""
-                            }
-                            .font(.manrope(size: 16, weight: .regular))
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 18)
-                            .background(Color.secondary.opacity(0.12))
-                            .foregroundColor(.secondary)
-                            .cornerRadius(Theme.cornerRadius)
-                        }
                     }
-                } else {
-                    Text(username)
-                        .font(.manrope(size: 22, weight: .bold))
-                        .foregroundColor(.primaryDark)
                 }
+                .frame(height: 54) // Fixed height to prevent layout shift
                 // Motivational quote
                 Text(motivationalQuote)
                     .font(.inter(size: 15))
@@ -96,16 +79,38 @@ struct ProfileView: View {
                         .foregroundColor(.accent)
                 }
                 .padding(.vertical, Theme.smallPadding)
-                // Edit Profile button
-                if !editingUsername {
+                // Edit Profile or Save/Cancel buttons
+                if editingUsername {
+                    HStack(spacing: 16) {
+                        Button(action: { saveUsername() }) {
+                            Text("Save")
+                                .font(.manrope(size: 16, weight: .semibold))
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                                .background(Color.accent)
+                                .foregroundColor(.primaryLight)
+                                .cornerRadius(Theme.cornerRadius)
+                        }
+                        Button(action: {
+                            editingUsername = false
+                            usernameError = ""
+                        }) {
+                            Text("Cancel")
+                                .font(.manrope(size: 16, weight: .regular))
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                                .background(Color.secondary.opacity(0.12))
+                                .foregroundColor(.secondary)
+                                .cornerRadius(Theme.cornerRadius)
+                        }
+                    }
+                    .padding(.horizontal, Theme.padding)
+                } else {
                     Button(action: {
                         newUsername = username
                         editingUsername = true
                     }) {
                         Text("Edit Profile")
                             .font(.manrope(size: 16, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Theme.smallPadding * 1.5)
+                            .frame(maxWidth: .infinity, minHeight: 48)
                             .background(Color.accent)
                             .foregroundColor(.primaryLight)
                             .cornerRadius(Theme.cornerRadius)
