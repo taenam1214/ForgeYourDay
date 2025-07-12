@@ -32,5 +32,5 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView(username: "taenam356", onLogout: {})
+    MainTabView(username: "taenam", onLogout: {})
 } 

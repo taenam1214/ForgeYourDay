@@ -188,6 +188,6 @@ struct AddPostView: View {
     }
 }
 
-#Preview {
-    AddPostView(username: "taenam356")
-} 
+#Preview() {
+    AddPostView(username: "Taenam")
+}
