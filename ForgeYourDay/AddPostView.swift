@@ -144,7 +144,7 @@ struct AddPostView: View {
                         VStack(spacing: 0) {
                             VStack(spacing: 18) {
                                 Text("What will you forge today?")
-                                    .font(.title)
+                .font(.title)
                                     .fontWeight(.bold)
                                     .padding(.top, 28)
                                     .padding(.horizontal, 24)
