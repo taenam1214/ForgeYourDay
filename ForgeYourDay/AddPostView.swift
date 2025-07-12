@@ -8,6 +8,9 @@ struct AddPostView: View {
     @State private var showAddTaskField: Bool = false
     @State private var newTaskText: String = ""
     @State private var animateModal: Bool = false
+    @State private var showTaskDonePrompt: Bool = false
+    @State private var selectedTask: String? = nil
+    @State private var animateTaskDonePrompt: Bool = false
     
     var taskKey: String { "dailyTasksArray_\(username)" }
     var taskDateKey: String { "dailyTasksDate_\(username)" }
@@ -78,6 +81,10 @@ struct AddPostView: View {
                                     .cornerRadius(Theme.cornerRadius * 1.5)
                                     .shadow(color: Color.black.opacity(0.07), radius: 4, y: 2)
                                     .foregroundColor(.primaryDark)
+                                    .onTapGesture {
+                                        selectedTask = task
+                                        showTaskDonePrompt = true
+                                    }
                                 Spacer()
                             }
                             .padding(.horizontal)
@@ -211,6 +218,77 @@ struct AddPostView: View {
                     }
                     .onDisappear {
                         animateModal = false
+                    }
+                }
+                // Task done confirmation prompt
+                if showTaskDonePrompt, let selectedTask = selectedTask {
+                    ZStack {
+                        Color.black.opacity(0.25).ignoresSafeArea()
+                        VStack(spacing: 20) {
+                            Text("Done with this task?")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 16)
+                            Text(selectedTask)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                            HStack(spacing: 24) {
+                                Button(action: {
+                                    // Will handle next step (image/desc) later
+                                    withAnimation(.easeOut(duration: 0.25)) {
+                                        animateTaskDonePrompt = false
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                        showTaskDonePrompt = false
+                                    }
+                                }) {
+                                    Text("Yes")
+                                        .font(.manrope(size: 16, weight: .bold))
+                                        .frame(minWidth: 80)
+                                        .padding(.vertical, 10)
+                                        .background(Color.accent)
+                                        .foregroundColor(.primaryLight)
+                                        .cornerRadius(Theme.cornerRadius)
+                                }
+                                Button(action: {
+                                    withAnimation(.easeOut(duration: 0.25)) {
+                                        animateTaskDonePrompt = false
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                        showTaskDonePrompt = false
+                                    }
+                                }) {
+                                    Text("No")
+                                        .font(.manrope(size: 16, weight: .regular))
+                                        .frame(minWidth: 80)
+                                        .padding(.vertical, 10)
+                                        .background(Color.secondary.opacity(0.12))
+                                        .foregroundColor(.secondary)
+                                        .cornerRadius(Theme.cornerRadius)
+                                }
+                            }
+                            .padding(.bottom, 16)
+                        }
+                        .frame(maxWidth: 320)
+                        .background(Color.primaryLight)
+                        .cornerRadius(Theme.cornerRadius * 2)
+                        .shadow(radius: 16, y: 4)
+                        .padding(.horizontal, 32)
+                        .opacity(animateTaskDonePrompt ? 1 : 0)
+                        .scaleEffect(animateTaskDonePrompt ? 1 : 0.95)
+                        .animation(.easeOut(duration: 0.3), value: animateTaskDonePrompt)
+                    }
+                    .onAppear {
+                        animateTaskDonePrompt = false
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            animateTaskDonePrompt = true
+                        }
+                    }
+                    .onDisappear {
+                        animateTaskDonePrompt = false
                     }
                 }
             }
