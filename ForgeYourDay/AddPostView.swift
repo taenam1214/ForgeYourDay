@@ -61,53 +61,26 @@ struct AddPostView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
+            ZStack(alignment: .bottomTrailing) {
                 VStack(alignment: .leading, spacing: Theme.padding) {
                     if !todaysTasks.isEmpty {
                         Text("Today's Tasks:")
                             .font(.headline)
                             .padding(.top)
-                        ForEach(todaysTasks.indices, id: \.self) { idx in
-                            HStack(alignment: .top) {
-                                Text("\(idx + 1).")
-                                    .font(.caption)
-                                    .foregroundColor(.accent)
-                                    .padding(.top, 2)
-                                Text(todaysTasks[idx])
+                        ForEach(todaysTasks, id: \.self) { task in
+                            HStack {
+                                Text(task)
                                     .font(.body)
-                                    .padding(8)
-                                    .background(Color.secondary.opacity(0.08))
-                                    .cornerRadius(Theme.cornerRadius)
+                                    .padding(.vertical, 14)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.primaryLight)
+                                    .cornerRadius(Theme.cornerRadius * 1.5)
+                                    .shadow(color: Color.black.opacity(0.07), radius: 4, y: 2)
                                     .foregroundColor(.primaryDark)
                                 Spacer()
                             }
                             .padding(.horizontal)
-                        }
-                        if showAddTaskField {
-                            HStack {
-                                TextField("New Task", text: $newTaskText)
-                                    .padding()
-                                    .background(Color.secondary.opacity(0.08))
-                                    .cornerRadius(Theme.cornerRadius)
-                                    .font(.body)
-                                Button(action: addNewTask) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.accent)
-                                        .font(.title2)
-                                }
-                            }
-                            .padding(.horizontal)
-                        } else {
-                            Button(action: { showAddTaskField = true }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(.accent)
-                                    Text("Add another task")
-                                        .font(.body)
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 4)
+                            .padding(.vertical, 2)
                         }
                     } else {
                         Text("No tasks set for today.")
@@ -119,6 +92,38 @@ struct AddPostView: View {
                 .onAppear(perform: checkTaskStatus)
                 .navigationTitle("Add Post")
                 .background(Color.primaryLight.ignoresSafeArea())
+                // Floating Action Button
+                if !showAddTaskField && !showTaskModal {
+                    Button(action: { showAddTaskField = true }) {
+                        Image(systemName: "plus.circle.fill")
+                            .resizable()
+                            .frame(width: 56, height: 56)
+                            .foregroundColor(.accent)
+                            .shadow(color: Color.accent.opacity(0.18), radius: 8, y: 4)
+                    }
+                    .padding([.bottom, .trailing], 28)
+                    .accessibilityLabel("Add another task")
+                }
+                // Inline add field
+                if showAddTaskField {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            TextField("New Task", text: $newTaskText)
+                                .padding()
+                                .background(Color.secondary.opacity(0.08))
+                                .cornerRadius(Theme.cornerRadius)
+                                .font(.body)
+                            Button(action: addNewTask) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.accent)
+                                    .font(.title2)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 24)
+                    }
+                }
                 // Modal overlay
                 if showTaskModal {
                     ZStack {
