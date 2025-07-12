@@ -8,6 +8,7 @@ struct RegisterView: View {
     @State private var confirmPassword = ""
     var onRegister: () -> Void
     var onBack: () -> Void
+    @State private var errorMessage = ""
     
     var body: some View {
         VStack(spacing: 0) {
@@ -70,8 +71,14 @@ struct RegisterView: View {
             }
             .padding(.horizontal, Theme.padding)
             .padding(.bottom, Theme.padding * 1.5)
+            if !errorMessage.isEmpty {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundColor(.accent)
+                    .padding(.bottom, 8)
+            }
             // Register button
-            Button(action: onRegister) {
+            Button(action: handleRegister) {
                 Text("Register")
                     .font(.manrope(size: 18, weight: .bold))
                     .frame(maxWidth: .infinity)
@@ -95,6 +102,25 @@ struct RegisterView: View {
             LinearGradient(gradient: Gradient(colors: [Color.primaryLight, Color.primaryLight.opacity(0.85)]), startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
+    }
+
+    private func handleRegister() {
+        let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            errorMessage = "Username cannot be empty."
+            return
+        }
+        let defaults = UserDefaults.standard
+        var registered = defaults.stringArray(forKey: "registeredUsernames") ?? ["Kimia", "Taenam", "Zay"]
+        if registered.contains(trimmed) {
+            errorMessage = "Username already taken. Try a different username."
+            return
+        }
+        // Add new username to the list
+        registered.append(trimmed)
+        defaults.setValue(registered, forKey: "registeredUsernames")
+        errorMessage = ""
+        onRegister()
     }
 }
 
