@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct AddPostView: View {
     let username: String
@@ -14,6 +15,7 @@ struct AddPostView: View {
     @State private var showTaskCompletionSheet: Bool = false
     @State private var completionDescription: String = ""
     @State private var completionImage: Image? = nil
+    @State private var completionImageItem: PhotosPickerItem? = nil
     
     var taskKey: String { "dailyTasksArray_\(username)" }
     var taskDateKey: String { "dailyTasksDate_\(username)" }
@@ -303,7 +305,6 @@ struct AddPostView: View {
                 Text("Complete Task")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .padding(.top, 16)
                 if let selectedTask = selectedTask {
                     Text(selectedTask)
                         .font(.headline)
@@ -311,24 +312,26 @@ struct AddPostView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                 }
-                // Image picker placeholder
-                ZStack {
-                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                        .fill(Color.primaryLight)
-                        .frame(width: 120, height: 120)
-                        .shadow(radius: 4, y: 2)
-                    if let image = completionImage {
-                        image
-                            .resizable()
-                            .scaledToFill()
+                // Image picker
+                PhotosPicker(selection: $completionImageItem, matching: .images, photoLibrary: .shared()) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                            .fill(Color.primaryLight)
                             .frame(width: 120, height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
-                    } else {
-                        Image(systemName: "photo.on.rectangle")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 48, height: 48)
-                            .foregroundColor(.secondary)
+                            .shadow(radius: 4, y: 2)
+                        if let image = completionImage {
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 120, height: 120)
+                                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                        } else {
+                            Image(systemName: "photo.on.rectangle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 48, height: 48)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 // Description field
@@ -366,6 +369,15 @@ struct AddPostView: View {
                 Spacer()
             }
             .presentationDetents([.medium, .large])
+        }
+        .onChange(of: completionImageItem) { newItem in
+            guard let newItem else { return }
+            Task {
+                if let data = try? await newItem.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    completionImage = Image(uiImage: uiImage)
+                }
+            }
         }
     }
 }
