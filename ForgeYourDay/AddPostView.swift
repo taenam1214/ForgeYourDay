@@ -67,6 +67,26 @@ struct AddPostView: View {
         showAddTaskField = false
     }
     
+    struct CompletedTask: Codable, Identifiable {
+        let id: UUID
+        let username: String
+        let task: String
+        let description: String
+        let imageData: Data? // Store image as Data
+        let date: Date
+        var likes: Int
+        var comments: [String]
+    }
+
+    func saveCompletedTask(_ completed: CompletedTask) {
+        let defaults = UserDefaults.standard
+        var all = (try? JSONDecoder().decode([CompletedTask].self, from: defaults.data(forKey: "completedTasks") ?? Data())) ?? []
+        all.insert(completed, at: 0) // newest first
+        if let encoded = try? JSONEncoder().encode(all) {
+            defaults.set(encoded, forKey: "completedTasks")
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottomTrailing) {
@@ -353,8 +373,50 @@ struct AddPostView: View {
                             .cornerRadius(Theme.cornerRadius)
                     }
                     Button(action: {
-                        // TODO: Handle submit
+                        // Remove from today's tasks
+                        if let selectedTask = selectedTask, let idx = todaysTasks.firstIndex(of: selectedTask) {
+                            todaysTasks.remove(at: idx)
+                            let defaults = UserDefaults.standard
+                            defaults.setValue(todaysTasks, forKey: taskKey)
+                        }
+                        // Prepare image data
+                        var imageData: Data? = nil
+                        if let item = completionImageItem {
+                            Task {
+                                if let data = try? await item.loadTransferable(type: Data.self) {
+                                    imageData = data
+                                    let completed = CompletedTask(
+                                        id: UUID(),
+                                        username: username,
+                                        task: selectedTask ?? "",
+                                        description: completionDescription,
+                                        imageData: imageData,
+                                        date: Date(),
+                                        likes: 0,
+                                        comments: []
+                                    )
+                                    saveCompletedTask(completed)
+                                }
+                            }
+                        } else {
+                            let completed = CompletedTask(
+                                id: UUID(),
+                                username: username,
+                                task: selectedTask ?? "",
+                                description: completionDescription,
+                                imageData: nil,
+                                date: Date(),
+                                likes: 0,
+                                comments: []
+                            )
+                            saveCompletedTask(completed)
+                        }
+                        // Reset modal state
                         showTaskCompletionSheet = false
+                        completionDescription = ""
+                        completionImage = nil
+                        completionImageItem = nil
+                        selectedTask = nil
                     }) {
                         Text("Submit")
                             .font(.manrope(size: 16, weight: .bold))
