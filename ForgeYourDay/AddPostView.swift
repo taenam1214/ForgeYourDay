@@ -11,6 +11,9 @@ struct AddPostView: View {
     @State private var showTaskDonePrompt: Bool = false
     @State private var selectedTask: String? = nil
     @State private var animateTaskDonePrompt: Bool = false
+    @State private var showTaskCompletionSheet: Bool = false
+    @State private var completionDescription: String = ""
+    @State private var completionImage: Image? = nil
     
     var taskKey: String { "dailyTasksArray_\(username)" }
     var taskDateKey: String { "dailyTasksDate_\(username)" }
@@ -237,12 +240,13 @@ struct AddPostView: View {
                                 .padding(.horizontal, 24)
                             HStack(spacing: 24) {
                                 Button(action: {
-                                    // Will handle next step (image/desc) later
+                                    // Show the completion sheet
                                     withAnimation(.easeOut(duration: 0.25)) {
                                         animateTaskDonePrompt = false
                                     }
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                                         showTaskDonePrompt = false
+                                        showTaskCompletionSheet = true
                                     }
                                 }) {
                                     Text("Yes")
@@ -292,6 +296,76 @@ struct AddPostView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showTaskCompletionSheet) {
+            VStack(spacing: 24) {
+                Spacer().frame(height: 12)
+                Text("Complete Task")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top, 16)
+                if let selectedTask = selectedTask {
+                    Text(selectedTask)
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                }
+                // Image picker placeholder
+                ZStack {
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                        .fill(Color.primaryLight)
+                        .frame(width: 120, height: 120)
+                        .shadow(radius: 4, y: 2)
+                    if let image = completionImage {
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    } else {
+                        Image(systemName: "photo.on.rectangle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 48, height: 48)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                // Description field
+                TextField("Add a short description...", text: $completionDescription)
+                    .padding()
+                    .background(Color.primaryLight)
+                    .cornerRadius(Theme.cornerRadius)
+                    .font(.body)
+                    .padding(.horizontal, 24)
+                // Action buttons
+                HStack(spacing: 16) {
+                    Button(action: { showTaskCompletionSheet = false }) {
+                        Text("Cancel")
+                            .font(.manrope(size: 16, weight: .regular))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.secondary.opacity(0.12))
+                            .foregroundColor(.secondary)
+                            .cornerRadius(Theme.cornerRadius)
+                    }
+                    Button(action: {
+                        // TODO: Handle submit
+                        showTaskCompletionSheet = false
+                    }) {
+                        Text("Submit")
+                            .font(.manrope(size: 16, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.accent)
+                            .foregroundColor(.primaryLight)
+                            .cornerRadius(Theme.cornerRadius)
+                    }
+                }
+                .padding(.horizontal, 24)
+                Spacer()
+            }
+            .presentationDetents([.medium, .large])
         }
     }
 }
