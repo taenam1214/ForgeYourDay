@@ -12,6 +12,10 @@ struct HomeView: View {
         if let data = defaults.data(forKey: "completedTasks"),
            let decoded = try? JSONDecoder().decode([AddPostView.CompletedTask].self, from: data) {
             completedTasks = decoded
+            // print("DEBUG: Loaded CompletedTasks:")
+            // for t in completedTasks {
+            //     print("task=\(t.task), description=\(t.description)")
+            // }
         } else {
             completedTasks = []
         }
@@ -42,6 +46,12 @@ struct HomeView: View {
         }
     }
     
+    func clearAllPosts() {
+        completedTasks = []
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "completedTasks")
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -59,9 +69,15 @@ struct HomeView: View {
                                         .resizable()
                                         .frame(width: 36, height: 36)
                                         .foregroundColor(.accent)
-                                    Text(post.username)
-                                        .font(.headline)
-                                        .foregroundColor(.primaryDark)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(post.username)
+                                            .font(.headline)
+                                            .foregroundColor(.primaryDark)
+                                        Text(post.task.isEmpty ? "No title provided." : post.task)
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.accent)
+                                    }
                                     Spacer()
                                     Text(post.date, style: .date)
                                         .font(.caption)
@@ -75,15 +91,10 @@ struct HomeView: View {
                                         .clipped()
                                         .cornerRadius(Theme.cornerRadius * 1.5)
                                 }
-                                Text(post.task)
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.accent)
-                                if !post.description.isEmpty {
-                                    Text(post.description)
-                                        .font(.body)
-                                        .foregroundColor(.primaryDark)
-                                }
+                                // Always show description, with placeholder if empty
+                                Text(post.description.isEmpty ? "No description provided." : post.description)
+                                    .font(.body)
+                                    .foregroundColor(.primaryDark)
                                 HStack(spacing: 18) {
                                     Button(action: { likeTask(post) }) {
                                         HStack(spacing: 4) {
@@ -140,8 +151,23 @@ struct HomeView: View {
                 .padding(.horizontal)
                 .padding(.top, 24)
             }
-            .background(Color.primaryLight.ignoresSafeArea())
+            .background(Color.white.ignoresSafeArea())
+            .refreshable {
+                loadCompletedTasks()
+            }
             .navigationTitle("Home")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: loadCompletedTasks) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: clearAllPosts) {
+                        Image(systemName: "trash")
+                    }
+                }
+            }
             .onAppear(perform: loadCompletedTasks)
         }
     }

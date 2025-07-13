@@ -16,6 +16,7 @@ struct AddPostView: View {
     @State private var completionDescription: String = ""
     @State private var completionImage: Image? = nil
     @State private var completionImageItem: PhotosPickerItem? = nil
+    @State private var showMissingFieldsAlert: Bool = false
     
     var taskKey: String { "dailyTasksArray_\(username)" }
     var taskDateKey: String { "dailyTasksDate_\(username)" }
@@ -82,6 +83,7 @@ struct AddPostView: View {
         let defaults = UserDefaults.standard
         var all = (try? JSONDecoder().decode([CompletedTask].self, from: defaults.data(forKey: "completedTasks") ?? Data())) ?? []
         all.insert(completed, at: 0) // newest first
+        // print("DEBUG: Saving CompletedTask: task=\(completed.task), description=\(completed.description)")
         if let encoded = try? JSONEncoder().encode(all) {
             defaults.set(encoded, forKey: "completedTasks")
         }
@@ -332,6 +334,15 @@ struct AddPostView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                 }
+                // Debug output for troubleshooting
+                // VStack(alignment: .leading, spacing: 4) {
+                //     Text("DEBUG: selectedTask = \(selectedTask ?? "nil")")
+                //         .font(.caption)
+                //         .foregroundColor(.red)
+                //     Text("DEBUG: completionDescription = \(completionDescription)")
+                //         .font(.caption)
+                //         .foregroundColor(.red)
+                // }
                 // Image picker
                 PhotosPicker(selection: $completionImageItem, matching: .images, photoLibrary: .shared()) {
                     ZStack {
@@ -361,6 +372,11 @@ struct AddPostView: View {
                     .cornerRadius(Theme.cornerRadius)
                     .font(.body)
                     .padding(.horizontal, 24)
+                if showMissingFieldsAlert {
+                    Text("Image and description are both required.")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                }
                 // Action buttons
                 HStack(spacing: 16) {
                     Button(action: { showTaskCompletionSheet = false }) {
@@ -373,6 +389,11 @@ struct AddPostView: View {
                             .cornerRadius(Theme.cornerRadius)
                     }
                     Button(action: {
+                        if completionImageItem == nil || completionDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            showMissingFieldsAlert = true
+                            return
+                        }
+                        showMissingFieldsAlert = false
                         // Remove from today's tasks
                         if let selectedTask = selectedTask, let idx = todaysTasks.firstIndex(of: selectedTask) {
                             todaysTasks.remove(at: idx)
@@ -380,6 +401,8 @@ struct AddPostView: View {
                             defaults.setValue(todaysTasks, forKey: taskKey)
                         }
                         // Prepare image data
+                        let capturedTask = selectedTask ?? ""
+                        let capturedDescription = completionDescription
                         var imageData: Data? = nil
                         if let item = completionImageItem {
                             Task {
@@ -388,8 +411,8 @@ struct AddPostView: View {
                                     let completed = CompletedTask(
                                         id: UUID(),
                                         username: username,
-                                        task: selectedTask ?? "",
-                                        description: completionDescription,
+                                        task: capturedTask,
+                                        description: capturedDescription,
                                         imageData: imageData,
                                         date: Date(),
                                         likes: 0,
@@ -402,8 +425,8 @@ struct AddPostView: View {
                             let completed = CompletedTask(
                                 id: UUID(),
                                 username: username,
-                                task: selectedTask ?? "",
-                                description: completionDescription,
+                                task: capturedTask,
+                                description: capturedDescription,
                                 imageData: nil,
                                 date: Date(),
                                 likes: 0,
@@ -426,6 +449,7 @@ struct AddPostView: View {
                             .foregroundColor(.primaryLight)
                             .cornerRadius(Theme.cornerRadius)
                     }
+                    .disabled(completionImageItem == nil || completionDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .padding(.horizontal, 24)
                 Spacer()
