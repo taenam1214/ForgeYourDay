@@ -47,8 +47,9 @@ struct LoginView: View {
             }
             // Login button
             Button(action: {
-                let validUsers = ["Kimia", "Taenam", "Zay"]
-                if validUsers.contains(username) && password == "chanceapp" {
+                let defaults = UserDefaults.standard
+                let registered = defaults.stringArray(forKey: "registeredUsernames") ?? ["Kimia", "Taenam", "Zay"]
+                if registered.contains(username) && password == "chanceapp" {
                     showError = false
                     onLogin(username)
                 } else {
