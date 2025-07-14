@@ -143,18 +143,20 @@ struct ProfileView: View {
                     }
                     .padding(.horizontal, Theme.padding)
                 }
-                // Logout button
-                Button(action: onLogout) {
-                    Text("Log Out")
-                        .font(.manrope(size: 16, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Theme.smallPadding * 1.5)
-                        .background(Color.secondary)
-                        .foregroundColor(.primaryLight)
-                        .cornerRadius(Theme.cornerRadius)
+                // Logout button (hide when editing profile)
+                if !editingUsername {
+                    Button(action: onLogout) {
+                        Text("Log Out")
+                            .font(.manrope(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Theme.smallPadding * 1.5)
+                            .background(Color.secondary)
+                            .foregroundColor(.primaryLight)
+                            .cornerRadius(Theme.cornerRadius)
+                    }
+                    .padding(.horizontal, Theme.padding)
+                    .padding(.top, 4)
                 }
-                .padding(.horizontal, Theme.padding)
-                .padding(.top, 4)
                 Spacer()
             }
             .navigationBarItems(trailing:
@@ -198,11 +200,92 @@ struct ProfileView: View {
         registered.append(trimmed)
         defaults.setValue(registered, forKey: "registeredUsernames")
         // Save new username
+        let oldUsername = username
         username = trimmed
         defaults.setValue(trimmed, forKey: "loggedInUsername")
         usernameError = ""
         editingUsername = false
         onUsernameChange(trimmed)
+        migrateUsername(from: oldUsername, to: trimmed)
+    }
+
+    // Migrate all references from oldUsername to newUsername
+    private func migrateUsername(from oldUsername: String, to newUsername: String) {
+        let defaults = UserDefaults.standard
+        // 1. Rename friends_<old> to friends_<new>
+        let oldFriendsKey = "friends_\(oldUsername)"
+        let newFriendsKey = "friends_\(newUsername)"
+        // 1. Copy (not just move) friends_<old> to friends_<new> if not already present
+        if let friends = defaults.stringArray(forKey: oldFriendsKey) {
+            let existing = defaults.stringArray(forKey: newFriendsKey) ?? []
+            let merged = Array(Set(friends + existing))
+            defaults.setValue(merged, forKey: newFriendsKey)
+            print("[DEBUG] After migration, friends for \(newUsername): \(merged)")
+        }
+        defaults.removeObject(forKey: oldFriendsKey)
+        // 2. Rename friendRequests_<old> to friendRequests_<new>
+        let oldReqKey = "friendRequests_\(oldUsername)"
+        let newReqKey = "friendRequests_\(newUsername)"
+        // 2. Copy friendRequests_<old> to friendRequests_<new> if not already present
+        if let reqs = defaults.stringArray(forKey: oldReqKey) {
+            let existing = defaults.stringArray(forKey: newReqKey) ?? []
+            let merged = Array(Set(reqs + existing))
+            defaults.setValue(merged, forKey: newReqKey)
+        }
+        defaults.removeObject(forKey: oldReqKey)
+        // 3. Rename dailyTasksArray_<old> and dailyTasksDate_<old>
+        let oldTasksKey = "dailyTasksArray_\(oldUsername)"
+        let newTasksKey = "dailyTasksArray_\(newUsername)"
+        // 3. Copy dailyTasksArray_<old> and dailyTasksDate_<old> to new keys if not already present
+        if let tasks = defaults.array(forKey: oldTasksKey) {
+            let existing = defaults.array(forKey: newTasksKey) ?? []
+            let merged = Array(Set((tasks as! [String]) + (existing as! [String])))
+            defaults.setValue(merged, forKey: newTasksKey)
+        }
+        defaults.removeObject(forKey: oldTasksKey)
+        let oldDateKey = "dailyTasksDate_\(oldUsername)"
+        let newDateKey = "dailyTasksDate_\(newUsername)"
+        if let date = defaults.object(forKey: oldDateKey) {
+            if defaults.object(forKey: newDateKey) == nil {
+                defaults.setValue(date, forKey: newDateKey)
+            }
+        }
+        defaults.removeObject(forKey: oldDateKey)
+        // 4. Update all other users' friends and friendRequests lists
+        let registered = defaults.stringArray(forKey: "registeredUsernames") ?? []
+        for user in registered where user != oldUsername {
+            let fKey = "friends_\(user)"
+            if var arr = defaults.stringArray(forKey: fKey) {
+                let updated = arr.map { $0 == oldUsername ? newUsername : $0 }
+                defaults.setValue(updated, forKey: fKey)
+            }
+            let rKey = "friendRequests_\(user)"
+            if var arr = defaults.stringArray(forKey: rKey) {
+                let updated = arr.map { $0 == oldUsername ? newUsername : $0 }
+                defaults.setValue(updated, forKey: rKey)
+            }
+        }
+        // 5. Update all posts and comments
+        if let data = defaults.data(forKey: "completedTasks"),
+           var posts = try? JSONDecoder().decode([AddPostView.CompletedTask].self, from: data) {
+            var changed = false
+            for i in posts.indices {
+                if posts[i].username == oldUsername {
+                    posts[i].username = newUsername
+                    changed = true
+                }
+                for j in posts[i].comments.indices {
+                    if posts[i].comments[j].username == oldUsername {
+                        posts[i].comments[j].username = newUsername
+                        changed = true
+                    }
+                }
+            }
+            if changed, let newData = try? JSONEncoder().encode(posts) {
+                defaults.set(newData, forKey: "completedTasks")
+            }
+        }
+        // After migration, reload UI state if needed (e.g., by calling checkTaskStatus or similar)
     }
 }
 

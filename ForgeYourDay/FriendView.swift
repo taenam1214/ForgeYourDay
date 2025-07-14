@@ -235,7 +235,10 @@ struct FriendView: View {
     private func loadFriends() {
         let defaults = UserDefaults.standard
         let key = "friends_\(username)"
-        friends = defaults.stringArray(forKey: key) ?? []
+        let loadedFriends = defaults.stringArray(forKey: key) ?? []
+        friends = loadedFriends.filter { $0 != username }
+        print("[DEBUG] Loaded friends for \(username): \(loadedFriends)")
+        print("[DEBUG] Filtered friends (excluding self): \(friends)")
     }
 
     private func loadRequests() {
