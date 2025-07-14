@@ -214,12 +214,13 @@ struct HomeView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 24)
+                .padding(.bottom, 48) // Extra bottom padding for last post
             }
             .background(Color.white.ignoresSafeArea())
             .refreshable {
                 loadCompletedTasks()
             }
-            .navigationTitle("Home")
+            .navigationTitle("") // Remove the Home title
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: loadCompletedTasks) {
