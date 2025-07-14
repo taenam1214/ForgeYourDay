@@ -274,6 +274,12 @@ struct ProfileView: View {
                     posts[i].username = newUsername
                     changed = true
                 }
+                // Update likes
+                if let idx = posts[i].likedBy.firstIndex(of: oldUsername) {
+                    posts[i].likedBy[idx] = newUsername
+                    changed = true
+                }
+                // Update comments
                 for j in posts[i].comments.indices {
                     if posts[i].comments[j].username == oldUsername {
                         posts[i].comments[j].username = newUsername
