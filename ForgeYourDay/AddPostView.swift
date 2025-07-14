@@ -132,50 +132,75 @@ struct AddPostView: View {
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottomTrailing) {
-                VStack(alignment: .leading, spacing: Theme.padding) {
+                VStack(spacing: 0) {
+                    // Header
+                    Spacer().frame(height: 32)
+                    VStack(spacing: 8) {
+                        Image(systemName: "calendar")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 36, height: 36)
+                            .foregroundColor(.accent)
+                        Text("Your Tasks for Today")
+                            .font(.manrope(size: 22, weight: .bold))
+                            .foregroundColor(.primaryDark)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 18)
+                    // Task List or Empty State
                     if !todaysTasks.isEmpty {
-                        Text("Today's Tasks:")
-                            .font(.headline)
-                            .padding(.top)
-                            .padding(.leading)
-                        ForEach(todaysTasks, id: \.self) { task in
-                            HStack {
-                                Text(task)
-                                    .font(.body)
-                                    .padding(.vertical, 14)
-                                    .padding(.horizontal, 16)
-                                    .background(Color.primaryLight)
-                                    .cornerRadius(Theme.cornerRadius * 1.5)
-                                    .shadow(color: Color.black.opacity(0.07), radius: 4, y: 2)
-                                    .foregroundColor(.primaryDark)
-                                    .onTapGesture {
-                                        selectedTask = task
-                                        showTaskDonePrompt = true
-                                    }
-                                Spacer()
+                        VStack(spacing: 14) {
+                            ForEach(todaysTasks, id: \.self) { task in
+                                HStack {
+                                    Text(task)
+                                        .font(.body)
+                                        .foregroundColor(.primaryDark)
+                                        .padding(.vertical, 14)
+                                        .padding(.horizontal, 16)
+                                    Spacer()
+                                }
+                                .background(Color.primaryLight)
+                                .cornerRadius(Theme.cornerRadius * 1.5)
+                                .shadow(color: Color.black.opacity(0.07), radius: 4, y: 2)
+                                .padding(.horizontal, 16)
+                                .onTapGesture {
+                                    selectedTask = task
+                                    showTaskDonePrompt = true
+                                }
                             }
-                            .padding(.horizontal)
-                            .padding(.vertical, 2)
                         }
+                        .padding(.top, 8)
+                        .padding(.bottom, 8)
+                        .frame(maxWidth: .infinity, alignment: .top)
                     } else {
                         VStack {
                             Spacer()
-                            HStack {
-                                Spacer()
-                                Text("No tasks set for today.")
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                            }
+                            Image(systemName: "clipboard")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 44, height: 44)
+                                .foregroundColor(.secondary)
+                                .padding(.bottom, 8)
+                            Text("No tasks set for today.")
+                                .foregroundColor(.secondary)
+                                .font(.manrope(size: 18, weight: .medium))
+                                .multilineTextAlignment(.center)
                             Spacer()
                         }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                    Spacer() // Always push content up
+                    Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(Color.white.ignoresSafeArea())
                 // Floating Action Button (always anchored)
                 if !showAddTaskField && !showTaskModal {
-                    Button(action: { showAddTaskField = true }) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showAddTaskField = true
+                        }
+                    }) {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
@@ -203,7 +228,9 @@ struct AddPostView: View {
                             }
                             Button(action: {
                                 newTaskText = ""
-                                showAddTaskField = false
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showAddTaskField = false
+                                }
                             }) {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.secondary)
@@ -213,6 +240,10 @@ struct AddPostView: View {
                         .padding(.horizontal)
                         .padding(.bottom, 56)
                     }
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .leading).combined(with: .opacity)
+                    ))
                 }
                 // Modal overlay
                 if showTaskModal {
