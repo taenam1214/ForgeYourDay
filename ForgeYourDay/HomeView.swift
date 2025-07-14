@@ -90,10 +90,26 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     if completedTasks.isEmpty {
-                        Text("No completed tasks yet.")
-                            .font(.title3)
-                            .foregroundColor(.secondary)
-                            .padding(.top, 48)
+                        VStack {
+                            Spacer()
+                            Image(systemName: "checkmark.circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 56, height: 56)
+                                .foregroundColor(.accent)
+                                .padding(.bottom, 12)
+                                .opacity(0.85)
+                            Text("No completed tasks yet.")
+                                .font(.manrope(size: 20, weight: .semibold))
+                                .foregroundColor(.primaryDark)
+                                .padding(.bottom, 4)
+                            Text("Complete a task to see it here!")
+                                .font(.manrope(size: 16, weight: .regular))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.opacity)
                     } else {
                         ForEach(completedTasks) { post in
                             VStack(alignment: .leading, spacing: 12) {
