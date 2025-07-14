@@ -60,7 +60,9 @@ struct AddPostView: View {
     func addNewTask() {
         let trimmed = newTaskText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        todaysTasks.append(trimmed)
+        withAnimation(.easeInOut(duration: 0.3)) {
+            todaysTasks.append(trimmed)
+        }
         let defaults = UserDefaults.standard
         defaults.setValue(todaysTasks, forKey: taskKey)
         defaults.setValue(Date(), forKey: taskDateKey)
@@ -131,7 +133,13 @@ struct AddPostView: View {
     
     var body: some View {
         NavigationView {
-            ZStack(alignment: .bottomTrailing) {
+            // Always reload tasks from storage when this view appears
+            // (Prevents loss of tasks when navigating back and forth)
+        }
+        .onAppear(perform: checkTaskStatus)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color.white.ignoresSafeArea())
+        ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
                     // Header
                     Spacer().frame(height: 32)
@@ -168,11 +176,13 @@ struct AddPostView: View {
                                     selectedTask = task
                                     showTaskDonePrompt = true
                                 }
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
                             }
                         }
                         .padding(.top, 8)
                         .padding(.bottom, 8)
                         .frame(maxWidth: .infinity, alignment: .top)
+                        .animation(.easeInOut(duration: 0.3), value: todaysTasks)
                     } else {
                         VStack {
                             Spacer()
@@ -398,7 +408,6 @@ struct AddPostView: View {
                     }
                 }
             }
-        }
         .sheet(isPresented: $showTaskCompletionSheet) {
             VStack(spacing: 24) {
                 Spacer().frame(height: 12)
@@ -546,6 +555,8 @@ struct AddPostView: View {
     }
 }
 
-#Preview() {
-    AddPostView(username: "Taenam")
+struct AddPostView_Previews: PreviewProvider {
+    static var previews: some View {
+        AddPostView(username: "Taenam")
+    }
 }
