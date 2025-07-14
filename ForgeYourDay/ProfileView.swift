@@ -12,6 +12,10 @@ struct ProfileView: View {
     @State private var newUsername = ""
     @State private var usernameError = ""
     @FocusState private var usernameFieldFocused: Bool
+    @State private var showFriendsSheet = false
+    @State private var newFriendUsername = ""
+    @State private var friends: [String] = []
+    @State private var addFriendMessage = ""
     
     var body: some View {
         NavigationView {
@@ -126,6 +130,15 @@ struct ProfileView: View {
                             .frame(maxWidth: .infinity, minHeight: 48)
                             .background(Color.accent)
                             .foregroundColor(.primaryLight)
+                            .cornerRadius(Theme.cornerRadius)
+                    }
+                    .padding(.horizontal, Theme.padding)
+                    NavigationLink(destination: FriendView(username: username)) {
+                        Text("Friends")
+                            .font(.manrope(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(Color.secondary.opacity(0.12))
+                            .foregroundColor(.secondary)
                             .cornerRadius(Theme.cornerRadius)
                     }
                     .padding(.horizontal, Theme.padding)

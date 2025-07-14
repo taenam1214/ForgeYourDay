@@ -68,6 +68,11 @@ struct AddPostView: View {
         showAddTaskField = false
     }
     
+    struct Comment: Codable, Hashable {
+        let username: String
+        let text: String
+    }
+
     struct CompletedTask: Codable, Identifiable {
         let id: UUID
         let username: String
@@ -76,7 +81,7 @@ struct AddPostView: View {
         let imageData: Data? // Store image as Data
         let date: Date
         var likes: Int
-        var comments: [String]
+        var comments: [Comment]
     }
 
     func saveCompletedTask(_ completed: CompletedTask) {
