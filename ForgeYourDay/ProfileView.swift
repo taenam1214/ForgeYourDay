@@ -6,7 +6,7 @@ struct ProfileView: View {
     @State var username: String
     let onLogout: () -> Void
     let onUsernameChange: (String) -> Void
-    @State private var tasksCompleted: Int = 42 // Example value
+    @State private var tasksCompleted: Int = 0 // Will be set based on real data
     @State private var motivationalQuote: String = "Stay productive, stay positive!"
     @State private var editingUsername = false
     @State private var newUsername = ""
@@ -159,6 +159,7 @@ struct ProfileView: View {
                 }
                 Spacer()
             }
+            .onAppear(perform: countTasksCompletedToday)
             .navigationBarItems(trailing:
                 Button(action: {
                     // Settings action
@@ -180,6 +181,22 @@ struct ProfileView: View {
         }
     }
     
+    // Count the number of tasks completed today by this user
+    private func countTasksCompletedToday() {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: "completedTasks"),
+              let posts = try? JSONDecoder().decode([AddPostView.CompletedTask].self, from: data) else {
+            tasksCompleted = 0
+            return
+        }
+        let today = Date()
+        let calendar = Calendar.current
+        let count = posts.filter { post in
+            post.username == username && calendar.isDate(post.date, inSameDayAs: today)
+        }.count
+        tasksCompleted = count
+    }
+
     private func saveUsername() {
         let trimmed = newUsername.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -207,6 +224,7 @@ struct ProfileView: View {
         editingUsername = false
         onUsernameChange(trimmed)
         migrateUsername(from: oldUsername, to: trimmed)
+        countTasksCompletedToday() // Update count after username change
     }
 
     // Migrate all references from oldUsername to newUsername
