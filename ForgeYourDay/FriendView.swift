@@ -7,6 +7,8 @@ struct FriendView: View {
     @State private var addFriendMessage = ""
     @State private var friendRequests: [String] = []
     @State private var requestMessage = ""
+    @State private var showUnfriendOverlay = false
+    @State private var selectedFriend: String? = nil
     
     var body: some View {
         ZStack {
@@ -129,20 +131,28 @@ struct FriendView: View {
                         ScrollView {
                             VStack(spacing: 14) {
                                 ForEach(friends, id: \.self) { friend in
-                                    HStack(spacing: 14) {
-                                        Image(systemName: "person.crop.circle")
-                                            .resizable()
-                                            .frame(width: 40, height: 40)
-                                            .foregroundColor(.secondary)
-                                        Text(friend)
-                                            .font(.manrope(size: 17, weight: .semibold))
-                                            .foregroundColor(.primaryDark)
-                                        Spacer()
+                                    Button(action: {
+                                        selectedFriend = friend
+                                        withAnimation(.easeInOut(duration: 0.25)) {
+                                            showUnfriendOverlay = true
+                                        }
+                                    }) {
+                                        HStack(spacing: 14) {
+                                            Image(systemName: "person.crop.circle")
+                                                .resizable()
+                                                .frame(width: 40, height: 40)
+                                                .foregroundColor(.secondary)
+                                            Text(friend)
+                                                .font(.manrope(size: 17, weight: .semibold))
+                                                .foregroundColor(.primaryDark)
+                                            Spacer()
+                                        }
+                                        .padding(12)
+                                        .background(Color.white)
+                                        .cornerRadius(Theme.cornerRadius * 1.2)
+                                        .shadow(color: Color.black.opacity(0.04), radius: 2, y: 1)
                                     }
-                                    .padding(12)
-                                    .background(Color.white)
-                                    .cornerRadius(Theme.cornerRadius * 1.2)
-                                    .shadow(color: Color.black.opacity(0.04), radius: 2, y: 1)
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                             }
                             .padding(.horizontal, 4)
@@ -159,6 +169,61 @@ struct FriendView: View {
             .navigationTitle("Friends")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear(perform: loadAll)
+            // Unfriend Overlay
+            .overlay(
+                Group {
+                    if showUnfriendOverlay, let friend = selectedFriend {
+                        Color.black.opacity(0.25)
+                            .ignoresSafeArea()
+                            .transition(.opacity)
+                        VStack(spacing: 20) {
+                            Text("Unfriend \(friend)?")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primaryDark)
+                                .padding(.top, 16)
+                            HStack(spacing: 18) {
+                                Button(action: {
+                                    unfriend(friend)
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        showUnfriendOverlay = false
+                                    }
+                                }) {
+                                    Text("Unfriend")
+                                        .font(.manrope(size: 16, weight: .bold))
+                                        .frame(minWidth: 100)
+                                        .padding(.vertical, 12)
+                                        .background(Color.accent)
+                                        .foregroundColor(.primaryLight)
+                                        .cornerRadius(Theme.cornerRadius)
+                                }
+                                Button(action: {
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        showUnfriendOverlay = false
+                                    }
+                                }) {
+                                    Text("Cancel")
+                                        .font(.manrope(size: 16, weight: .regular))
+                                        .frame(minWidth: 100)
+                                        .padding(.vertical, 12)
+                                        .background(Color.secondary.opacity(0.12))
+                                        .foregroundColor(.secondary)
+                                        .cornerRadius(Theme.cornerRadius)
+                                }
+                            }
+                            .padding(.bottom, 16)
+                        }
+                        .frame(maxWidth: 320)
+                        .background(Color.primaryLight)
+                        .cornerRadius(Theme.cornerRadius * 2)
+                        .shadow(radius: 16, y: 4)
+                        .padding(.horizontal, 32)
+                        .opacity(showUnfriendOverlay ? 1 : 0)
+                        .scaleEffect(showUnfriendOverlay ? 1 : 0.95)
+                        .animation(.easeInOut(duration: 0.25), value: showUnfriendOverlay)
+                    }
+                }
+            )
         }
     }
     
@@ -248,5 +313,20 @@ struct FriendView: View {
         defaults.setValue(myRequests, forKey: myRequestsKey)
         friendRequests = myRequests
         requestMessage = "Request rejected."
+    }
+
+    private func unfriend(_ friend: String) {
+        let defaults = UserDefaults.standard
+        // Remove friend from my list
+        let myFriendsKey = "friends_\(username)"
+        var myFriends = defaults.stringArray(forKey: myFriendsKey) ?? []
+        myFriends.removeAll { $0 == friend }
+        defaults.setValue(myFriends, forKey: myFriendsKey)
+        friends = myFriends
+        // Remove myself from their list
+        let theirFriendsKey = "friends_\(friend)"
+        var theirFriends = defaults.stringArray(forKey: theirFriendsKey) ?? []
+        theirFriends.removeAll { $0 == username }
+        defaults.setValue(theirFriends, forKey: theirFriendsKey)
     }
 } 
