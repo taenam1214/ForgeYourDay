@@ -28,22 +28,34 @@ struct HomeView: View {
     }
     
     func likeTask(_ task: AddPostView.CompletedTask) {
-        guard let idx = completedTasks.firstIndex(where: { $0.id == task.id }) else { return }
-        if likedTaskIDs.contains(task.id) {
-            completedTasks[idx].likes -= 1
-            likedTaskIDs.remove(task.id)
+        print("[DEBUG] Like button tapped for post id: \(task.id)")
+        if let idx = completedTasks.firstIndex(where: { $0.id == task.id }) {
+            var post = completedTasks[idx]
+            if let userIdx = post.likedBy.firstIndex(of: username) {
+                post.likedBy.remove(at: userIdx)
+                print("[DEBUG] Unliked by \(username)")
+            } else {
+                post.likedBy.append(username)
+                print("[DEBUG] Liked by \(username)")
+            }
+            completedTasks[idx] = post
+            saveTasks()
         } else {
-            completedTasks[idx].likes += 1
-            likedTaskIDs.insert(task.id)
+            print("[DEBUG] Post not found in completedTasks for id: \(task.id)")
         }
-        saveTasks()
     }
     
     func addComment(to task: AddPostView.CompletedTask, comment: String) {
-        guard let idx = completedTasks.firstIndex(where: { $0.id == task.id }) else { return }
-        let newComment = AddPostView.Comment(username: username, text: comment)
-        completedTasks[idx].comments.append(newComment)
-        saveTasks()
+        print("[DEBUG] Add comment tapped for post id: \(task.id)")
+        if let idx = completedTasks.firstIndex(where: { $0.id == task.id }) {
+            print("[DEBUG] Found post at index \(idx). Comments before: \(completedTasks[idx].comments.count)")
+            let newComment = AddPostView.Comment(username: username, text: comment)
+            completedTasks[idx].comments.append(newComment)
+            print("[DEBUG] Comments after: \(completedTasks[idx].comments.count)")
+            saveTasks()
+        } else {
+            print("[DEBUG] Post not found in completedTasks for id: \(task.id)")
+        }
     }
     
     func saveTasks() {
@@ -119,9 +131,9 @@ struct HomeView: View {
                                 HStack(spacing: 18) {
                                     Button(action: { likeTask(post) }) {
                                         HStack(spacing: 4) {
-                                            Image(systemName: likedTaskIDs.contains(post.id) ? "heart.fill" : "heart")
+                                            Image(systemName: post.likedBy.contains(username) ? "heart.fill" : "heart")
                                                 .foregroundColor(.accent)
-                                            Text("\(post.likes)")
+                                            Text("\(post.likedBy.count)")
                                                 .foregroundColor(.primaryDark)
                                         }
                                     }
@@ -220,7 +232,10 @@ struct HomeView: View {
                     }
                 }
             }
-            .onAppear(perform: loadCompletedTasks)
+            .onAppear {
+                AddPostView.migrateOldPostsIfNeeded()
+                loadCompletedTasks()
+            }
             .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { _ in
                 now = Date()
             }

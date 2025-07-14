@@ -80,10 +80,45 @@ struct AddPostView: View {
         let description: String
         let imageData: Data? // Store image as Data
         let date: Date
-        var likes: Int
+        var likedBy: [String]
         var comments: [Comment]
     }
 
+    // Migration helper: convert old posts to new format
+    static func migrateOldPostsIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: "completedTasks") else { return }
+        if let oldPosts = try? JSONDecoder().decode([OldCompletedTask].self, from: data) {
+            let migrated = oldPosts.map { old in
+                CompletedTask(
+                    id: old.id,
+                    username: old.username,
+                    task: old.task,
+                    description: old.description,
+                    imageData: old.imageData,
+                    date: old.date,
+                    likedBy: [], // Can't recover who liked, so start empty
+                    comments: old.comments
+                )
+            }
+            if let newData = try? JSONEncoder().encode(migrated) {
+                defaults.set(newData, forKey: "completedTasks")
+            }
+        }
+    }
+
+    // Old struct for migration
+    private struct OldCompletedTask: Codable, Identifiable {
+        var id: UUID
+        var username: String
+        let task: String
+        let description: String
+        let imageData: Data?
+        let date: Date
+        var likes: Int
+        var comments: [Comment]
+    }
+    
     func saveCompletedTask(_ completed: CompletedTask) {
         let defaults = UserDefaults.standard
         var all = (try? JSONDecoder().decode([CompletedTask].self, from: defaults.data(forKey: "completedTasks") ?? Data())) ?? []
@@ -420,7 +455,7 @@ struct AddPostView: View {
                                         description: capturedDescription,
                                         imageData: imageData,
                                         date: Date(),
-                                        likes: 0,
+                                        likedBy: [],
                                         comments: []
                                     )
                                     saveCompletedTask(completed)
@@ -434,7 +469,7 @@ struct AddPostView: View {
                                 description: capturedDescription,
                                 imageData: nil,
                                 date: Date(),
-                                likes: 0,
+                                likedBy: [],
                                 comments: []
                             )
                             saveCompletedTask(completed)
