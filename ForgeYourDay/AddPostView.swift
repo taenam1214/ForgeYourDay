@@ -158,15 +158,22 @@ struct AddPostView: View {
                             .padding(.vertical, 2)
                         }
                     } else {
-                        Text("No tasks set for today.")
-                            .foregroundColor(.secondary)
-                            .padding()
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                Text("No tasks set for today.")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                            }
+                            Spacer()
+                        }
                     }
-                    Spacer()
+                    Spacer() // Always push content up
                 }
-                .onAppear(perform: checkTaskStatus)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(Color.white.ignoresSafeArea())
-                // Floating Action Button
+                // Floating Action Button (always anchored)
                 if !showAddTaskField && !showTaskModal {
                     Button(action: { showAddTaskField = true }) {
                         Image(systemName: "plus.circle.fill")
