@@ -11,18 +11,17 @@ struct HomeView: View {
     
     func loadCompletedTasks() {
         let defaults = UserDefaults.standard
+        let friendsKey = "friends_\(username)"
+        let friends = defaults.stringArray(forKey: friendsKey) ?? []
         if let data = defaults.data(forKey: "completedTasks"),
            let decoded = try? JSONDecoder().decode([AddPostView.CompletedTask].self, from: data) {
             let now = Date()
             let filtered = decoded.filter { post in
                 guard let postDate = Calendar.current.date(byAdding: .hour, value: 24, to: post.date) else { return false }
-                return now < postDate
+                let isFriendOrSelf = post.username == username || friends.contains(post.username)
+                return now < postDate && isFriendOrSelf
             }
             completedTasks = filtered
-            // Save filtered list back to UserDefaults
-            if let encoded = try? JSONEncoder().encode(filtered) {
-                defaults.set(encoded, forKey: "completedTasks")
-            }
         } else {
             completedTasks = []
         }
