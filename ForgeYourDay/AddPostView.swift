@@ -176,7 +176,7 @@ struct AddPostView: View {
                                     selectedTask = task
                                     showTaskDonePrompt = true
                                 }
-                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                                .transition(.move(edge: .leading).combined(with: .opacity))
                             }
                         }
                         .padding(.top, 8)
