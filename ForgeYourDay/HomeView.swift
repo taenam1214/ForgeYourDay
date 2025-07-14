@@ -185,8 +185,10 @@ struct HomeView: View {
                                         Button(action: {
                                             if !commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                                 addComment(to: post, comment: commentText)
-                                                commentText = ""
-                                                commentingTaskID = nil
+                                                withAnimation(.easeInOut) {
+                                                    commentText = ""
+                                                    commentingTaskID = nil
+                                                }
                                             }
                                         }) {
                                             Text("Post")
@@ -197,11 +199,30 @@ struct HomeView: View {
                                                 .background(Color.accent)
                                                 .cornerRadius(8)
                                         }
+                                        Button(action: {
+                                            withAnimation(.easeInOut) {
+                                                commentText = ""
+                                                commentingTaskID = nil
+                                            }
+                                        }) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.secondary)
+                                                .font(.title2)
+                                                .padding(.vertical, 8)
+                                                .padding(.horizontal, 8)
+                                                .background(Color.secondary.opacity(0.12))
+                                                .cornerRadius(8)
+                                        }
                                     }
                                     .padding(8)
                                     .background(Color.secondary.opacity(0.08))
                                     .cornerRadius(12)
-                                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                                    .transition(
+                                        .asymmetric(
+                                            insertion: .scale.combined(with: .move(edge: .bottom)).combined(with: .opacity),
+                                            removal: .move(edge: .bottom).combined(with: .opacity)
+                                        )
+                                    )
                                     .animation(.easeInOut, value: commentingTaskID == post.id)
                                 }
                             }
