@@ -160,15 +160,6 @@ struct ProfileView: View {
                 Spacer()
             }
             .onAppear(perform: countTasksCompletedToday)
-            .navigationBarItems(trailing:
-                Button(action: {
-                    // Settings action
-                }) {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundColor(.secondary)
-                        .imageScale(.large)
-                }
-            )
             .background(
                 LinearGradient(gradient: Gradient(colors: [Color.primaryLight, Color.primaryLight.opacity(0.85)]), startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
