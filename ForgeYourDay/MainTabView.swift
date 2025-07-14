@@ -16,7 +16,7 @@ struct MainTabView: View {
             Group {
                 switch selectedTab {
                 case .home:
-                    HomeView()
+                    HomeView(username: username)
                 case .add:
                     AddPostView(username: username)
                 case .profile:
