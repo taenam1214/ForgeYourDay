@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct AddPostView: View {
-    let username: String
+    var username: String
     @State private var showTaskModal: Bool = false
     @State private var taskInputs: [String] = Array(repeating: "", count: 3)
     @State private var todaysTasks: [String] = []
@@ -69,13 +69,13 @@ struct AddPostView: View {
     }
     
     struct Comment: Codable, Hashable {
-        let username: String
+        var username: String
         let text: String
     }
 
     struct CompletedTask: Codable, Identifiable {
-        let id: UUID
-        let username: String
+        var id: UUID
+        var username: String
         let task: String
         let description: String
         let imageData: Data? // Store image as Data
