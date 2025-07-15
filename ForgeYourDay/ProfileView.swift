@@ -16,158 +16,216 @@ struct ProfileView: View {
     @State private var newFriendUsername = ""
     @State private var friends: [String] = []
     @State private var addFriendMessage = ""
+    @State private var showLogoutPrompt = false
     
     var body: some View {
         NavigationView {
-            VStack(spacing: Theme.padding * 1.5) {
-                Spacer().frame(height: 16)
-                // Profile photo and upload button
-                ZStack(alignment: .bottomTrailing) {
-                    (profileImage ?? Image(systemName: "person.crop.circle.fill"))
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 100, height: 100)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.accent, lineWidth: 3))
-                        .shadow(radius: 6)
-                    Button(action: { showingImagePicker = true }) {
-                        Image(systemName: "camera.fill")
-                            .foregroundColor(.primaryLight)
-                            .padding(8)
-                            .background(Color.accent)
+            ZStack {
+                VStack(spacing: Theme.padding * 1.5) {
+                    Spacer().frame(height: 16)
+                    // Profile photo and upload button
+                    ZStack(alignment: .bottomTrailing) {
+                        (profileImage ?? Image(systemName: "person.crop.circle.fill"))
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 100, height: 100)
                             .clipShape(Circle())
-                            .shadow(radius: 2)
+                            .overlay(Circle().stroke(Color.accent, lineWidth: 3))
+                            .shadow(radius: 6)
+                        Button(action: { showingImagePicker = true }) {
+                            Image(systemName: "camera.fill")
+                                .foregroundColor(.primaryLight)
+                                .padding(8)
+                                .background(Color.accent)
+                                .clipShape(Circle())
+                                .shadow(radius: 2)
+                        }
+                        .offset(x: 4, y: 4)
                     }
-                    .offset(x: 4, y: 4)
-                }
-                // Username
-                ZStack {
-                    // Static text (invisible when editing)
-                    Text(username)
-                        .font(.manrope(size: 22, weight: .bold))
-                        .foregroundColor(.primaryDark)
-                        .frame(maxWidth: .infinity)
+                    // Username
+                    ZStack {
+                        if !editingUsername {
+                            Text(username)
+                                .font(.manrope(size: 22, weight: .bold))
+                                .foregroundColor(.primaryDark)
+                                .frame(maxWidth: .infinity)
+                                .multilineTextAlignment(.center)
+                        }
+                        if editingUsername {
+                            VStack(spacing: 6) {
+                                TextField("Username", text: $newUsername)
+                                    .font(.manrope(size: 22, weight: .bold))
+                                    .foregroundColor(.primaryDark)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.primaryLight)
+                                    .cornerRadius(Theme.cornerRadius)
+                                    .frame(maxWidth: .infinity)
+                                    .multilineTextAlignment(.center)
+                                    .focused($usernameFieldFocused)
+                                if !usernameError.isEmpty {
+                                    Text(usernameError)
+                                        .font(.caption)
+                                        .foregroundColor(.accent)
+                                }
+                            }
+                        }
+                    }
+                    .frame(height: 54)
+                    .onChange(of: editingUsername) { editing in
+                        if editing {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                usernameFieldFocused = true
+                            }
+                        }
+                    }
+                    // Motivational quote
+                    Text(motivationalQuote)
+                        .font(.inter(size: 15))
+                        .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
-                        .opacity(editingUsername ? 0 : 1)
-                    // Editable text field (invisible when not editing)
-                    VStack(spacing: 6) {
-                        TextField("Username", text: $newUsername)
-                            .font(.manrope(size: 22, weight: .bold))
+                        .padding(.horizontal, Theme.padding)
+                    Divider().padding(.horizontal, Theme.padding)
+                    // Tasks completed
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundColor(.accent)
+                        Text("Tasks completed today:")
+                            .font(.body)
                             .foregroundColor(.primaryDark)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 16)
-                            .background(Color.primaryLight)
-                            .cornerRadius(Theme.cornerRadius)
-                            .frame(maxWidth: .infinity)
-                            .multilineTextAlignment(.center)
-                            .focused($usernameFieldFocused)
-                            .opacity(editingUsername ? 1 : 0)
-                        if editingUsername && !usernameError.isEmpty {
-                            Text(usernameError)
-                                .font(.caption)
-                                .foregroundColor(.accent)
-                        }
+                        Text("\(tasksCompleted)")
+                            .font(.manrope(size: 18, weight: .bold))
+                            .foregroundColor(.accent)
                     }
-                }
-                .frame(height: 54) // Fixed height to prevent layout shift
-                .onChange(of: editingUsername) { editing in
-                    if editing {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            usernameFieldFocused = true
+                    .padding(.vertical, Theme.smallPadding)
+                    // Edit Profile or Save/Cancel buttons
+                    if editingUsername {
+                        HStack(spacing: 16) {
+                            Button(action: { withAnimation { saveUsername() } }) {
+                                Text("Save")
+                                    .font(.manrope(size: 16, weight: .semibold))
+                                    .frame(maxWidth: .infinity, minHeight: 48)
+                                    .background(Color.accent)
+                                    .foregroundColor(.primaryLight)
+                                    .cornerRadius(Theme.cornerRadius)
+                            }
+                            Button(action: { withAnimation { editingUsername = false; usernameError = "" } }) {
+                                Text("Cancel")
+                                    .font(.manrope(size: 16, weight: .regular))
+                                    .frame(maxWidth: .infinity, minHeight: 48)
+                                    .background(Color.secondary.opacity(0.12))
+                                    .foregroundColor(.secondary)
+                                    .cornerRadius(Theme.cornerRadius)
+                            }
                         }
-                    }
-                }
-                // Motivational quote
-                Text(motivationalQuote)
-                    .font(.inter(size: 15))
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, Theme.padding)
-                Divider().padding(.horizontal, Theme.padding)
-                // Tasks completed
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .foregroundColor(.accent)
-                    Text("Tasks completed today:")
-                        .font(.body)
-                        .foregroundColor(.primaryDark)
-                    Text("\(tasksCompleted)")
-                        .font(.manrope(size: 18, weight: .bold))
-                        .foregroundColor(.accent)
-                }
-                .padding(.vertical, Theme.smallPadding)
-                // Edit Profile or Save/Cancel buttons
-                if editingUsername {
-                    HStack(spacing: 16) {
-                        Button(action: { saveUsername() }) {
-                            Text("Save")
+                        .padding(.horizontal, Theme.padding)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    } else {
+                        Button(action: {
+                            withAnimation {
+                                newUsername = username
+                                editingUsername = true
+                            }
+                        }) {
+                            Text("Edit Profile")
                                 .font(.manrope(size: 16, weight: .semibold))
                                 .frame(maxWidth: .infinity, minHeight: 48)
                                 .background(Color.accent)
                                 .foregroundColor(.primaryLight)
                                 .cornerRadius(Theme.cornerRadius)
                         }
-                        Button(action: {
-                            editingUsername = false
-                            usernameError = ""
-                        }) {
-                            Text("Cancel")
-                                .font(.manrope(size: 16, weight: .regular))
+                        .padding(.horizontal, Theme.padding)
+                        NavigationLink(destination: FriendView(username: username)) {
+                            Text("Friends")
+                                .font(.manrope(size: 16, weight: .semibold))
                                 .frame(maxWidth: .infinity, minHeight: 48)
                                 .background(Color.secondary.opacity(0.12))
                                 .foregroundColor(.secondary)
                                 .cornerRadius(Theme.cornerRadius)
                         }
+                        .padding(.horizontal, Theme.padding)
                     }
-                    .padding(.horizontal, Theme.padding)
-                } else {
-                    Button(action: {
-                        newUsername = username
-                        editingUsername = true
-                    }) {
-                        Text("Edit Profile")
-                            .font(.manrope(size: 16, weight: .semibold))
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Color.accent)
-                            .foregroundColor(.primaryLight)
-                            .cornerRadius(Theme.cornerRadius)
+                    // Logout button (hide when editing profile)
+                    if !editingUsername {
+                        Button(action: { withAnimation(.easeOut(duration: 0.3)) { showLogoutPrompt = true } }) {
+                            Text("Log Out")
+                                .font(.manrope(size: 16, weight: .semibold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Theme.smallPadding * 1.5)
+                                .background(Color.secondary)
+                                .foregroundColor(.primaryLight)
+                                .cornerRadius(Theme.cornerRadius)
+                        }
+                        .padding(.horizontal, Theme.padding)
+                        .padding(.top, 4)
                     }
-                    .padding(.horizontal, Theme.padding)
-                    NavigationLink(destination: FriendView(username: username)) {
-                        Text("Friends")
-                            .font(.manrope(size: 16, weight: .semibold))
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Color.secondary.opacity(0.12))
-                            .foregroundColor(.secondary)
-                            .cornerRadius(Theme.cornerRadius)
-                    }
-                    .padding(.horizontal, Theme.padding)
+                    Spacer()
                 }
-                // Logout button (hide when editing profile)
-                if !editingUsername {
-                    Button(action: onLogout) {
-                        Text("Log Out")
-                            .font(.manrope(size: 16, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Theme.smallPadding * 1.5)
-                            .background(Color.secondary)
-                            .foregroundColor(.primaryLight)
-                            .cornerRadius(Theme.cornerRadius)
-                    }
-                    .padding(.horizontal, Theme.padding)
-                    .padding(.top, 4)
+                .onAppear(perform: countTasksCompletedToday)
+                .background(
+                    LinearGradient(gradient: Gradient(colors: [Color.primaryLight, Color.primaryLight.opacity(0.85)]), startPoint: .top, endPoint: .bottom)
+                        .ignoresSafeArea()
+                )
+                .sheet(isPresented: $showingImagePicker) {
+                    // Placeholder for image picker
+                    Text("Image Picker goes here")
+                        .font(.body)
                 }
-                Spacer()
-            }
-            .onAppear(perform: countTasksCompletedToday)
-            .background(
-                LinearGradient(gradient: Gradient(colors: [Color.primaryLight, Color.primaryLight.opacity(0.85)]), startPoint: .top, endPoint: .bottom)
-                    .ignoresSafeArea()
-            )
-            .sheet(isPresented: $showingImagePicker) {
-                // Placeholder for image picker
-                Text("Image Picker goes here")
-                    .font(.body)
+                // Custom logout confirmation overlay
+                if showLogoutPrompt {
+                    ZStack {
+                        Color.black.opacity(0.25).ignoresSafeArea()
+                        VStack(spacing: 20) {
+                            Text("Are you sure")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 24)
+                            Text("you want to log out?")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.center)
+                                .padding(.top, -6)
+                            HStack(spacing: 24) {
+                                Button(action: {
+                                    withAnimation(.easeOut(duration: 0.25)) { showLogoutPrompt = false }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        onLogout()
+                                    }
+                                }) {
+                                    Text("Yes")
+                                        .font(.manrope(size: 16, weight: .bold))
+                                        .frame(minWidth: 80)
+                                        .padding(.vertical, 10)
+                                        .background(Color.accent)
+                                        .foregroundColor(.primaryLight)
+                                        .cornerRadius(Theme.cornerRadius)
+                                }
+                                Button(action: {
+                                    withAnimation(.easeOut(duration: 0.25)) { showLogoutPrompt = false }
+                                }) {
+                                    Text("No")
+                                        .font(.manrope(size: 16, weight: .regular))
+                                        .frame(minWidth: 80)
+                                        .padding(.vertical, 10)
+                                        .background(Color.secondary.opacity(0.12))
+                                        .foregroundColor(.secondary)
+                                        .cornerRadius(Theme.cornerRadius)
+                                }
+                            }
+                            .padding(.bottom, 16)
+                        }
+                        .frame(maxWidth: 320)
+                        .background(Color.primaryLight)
+                        .cornerRadius(Theme.cornerRadius * 2)
+                        .shadow(radius: 16, y: 4)
+                        .padding(.horizontal, 32)
+                        .opacity(showLogoutPrompt ? 1 : 0)
+                        .scaleEffect(showLogoutPrompt ? 1 : 0.95)
+                        .animation(.easeOut(duration: 0.3), value: showLogoutPrompt)
+                    }
+                    .transition(.opacity)
+                }
             }
         }
     }
