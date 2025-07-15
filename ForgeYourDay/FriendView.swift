@@ -14,6 +14,42 @@ struct FriendView: View {
         ZStack {
             Color.primaryLight.ignoresSafeArea()
             VStack(spacing: 0) {
+                // Add Friend Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Add Friend")
+                        .font(.manrope(size: 20, weight: .bold))
+                        .foregroundColor(.accent)
+                        .padding(.top, 16)
+                        .padding(.leading, 8)
+                    HStack {
+                        TextField("Add friend by username", text: $newFriendUsername)
+                            .padding(12)
+                            .background(Color.white)
+                            .cornerRadius(Theme.cornerRadius)
+                            .font(.body)
+                        Button(action: sendFriendRequest) {
+                            Text("Add")
+                                .font(.manrope(size: 16, weight: .bold))
+                                .foregroundColor(.primaryLight)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 18)
+                                .background(Color.accent)
+                                .cornerRadius(Theme.cornerRadius)
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                    if !addFriendMessage.isEmpty {
+                        Text(addFriendMessage)
+                            .foregroundColor(addFriendMessage.contains("sent") ? .accent : .red)
+                            .font(.caption)
+                            .padding(.leading, 8)
+                    }
+                }
+                .background(Color.primaryLight)
+                .cornerRadius(Theme.cornerRadius * 1.5)
+                .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
                 // Friend Requests Section
                 if !friendRequests.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
@@ -68,42 +104,6 @@ struct FriendView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
                 }
-                // Add Friend Section
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Add Friend")
-                        .font(.manrope(size: 20, weight: .bold))
-                        .foregroundColor(.accent)
-                        .padding(.top, 16)
-                        .padding(.leading, 8)
-                    HStack {
-                        TextField("Add friend by username", text: $newFriendUsername)
-                            .padding(12)
-                            .background(Color.white)
-                            .cornerRadius(Theme.cornerRadius)
-                            .font(.body)
-                        Button(action: sendFriendRequest) {
-                            Text("Add")
-                                .font(.manrope(size: 16, weight: .bold))
-                                .foregroundColor(.primaryLight)
-                                .padding(.vertical, 10)
-                                .padding(.horizontal, 18)
-                                .background(Color.accent)
-                                .cornerRadius(Theme.cornerRadius)
-                        }
-                    }
-                    .padding(.horizontal, 4)
-                    if !addFriendMessage.isEmpty {
-                        Text(addFriendMessage)
-                            .foregroundColor(addFriendMessage.contains("sent") ? .accent : .red)
-                            .font(.caption)
-                            .padding(.leading, 8)
-                    }
-                }
-                .background(Color.primaryLight)
-                .cornerRadius(Theme.cornerRadius * 1.5)
-                .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
                 Divider()
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
@@ -166,8 +166,6 @@ struct FriendView: View {
                 .padding(.bottom, 16)
                 Spacer()
             }
-            .navigationTitle("Friends")
-            .navigationBarTitleDisplayMode(.inline)
             .onAppear(perform: loadAll)
             // Unfriend Overlay
             .overlay(

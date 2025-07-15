@@ -12,7 +12,7 @@ struct ProfileView: View {
     @State private var newUsername = ""
     @State private var usernameError = ""
     @FocusState private var usernameFieldFocused: Bool
-    @State private var showFriendsSheet = false
+    @State private var showFriendsScreen = false
     @State private var newFriendUsername = ""
     @State private var friends: [String] = []
     @State private var addFriendMessage = ""
@@ -22,7 +22,7 @@ struct ProfileView: View {
         NavigationView {
             ZStack {
                 VStack(spacing: Theme.padding * 1.5) {
-                    Spacer().frame(height: 16)
+                    Spacer().frame(height: 24)
                     // Profile photo and upload button
                     ZStack(alignment: .bottomTrailing) {
                         (profileImage ?? Image(systemName: "person.crop.circle.fill"))
@@ -135,7 +135,7 @@ struct ProfileView: View {
                                 .cornerRadius(Theme.cornerRadius)
                         }
                         .padding(.horizontal, Theme.padding)
-                        NavigationLink(destination: FriendView(username: username)) {
+                        Button(action: { withAnimation { showFriendsScreen = true } }) {
                             Text("Friends")
                                 .font(.manrope(size: 16, weight: .semibold))
                                 .frame(maxWidth: .infinity, minHeight: 48)
@@ -225,6 +225,27 @@ struct ProfileView: View {
                         .animation(.easeOut(duration: 0.3), value: showLogoutPrompt)
                     }
                     .transition(.opacity)
+                }
+                // Custom fade transition for FriendView
+                if showFriendsScreen {
+                    ZStack {
+                        Color.primaryLight.opacity(0.98).ignoresSafeArea()
+                        VStack(spacing: 0) {
+                            HStack {
+                                Button(action: { withAnimation { showFriendsScreen = false } }) {
+                                    Image(systemName: "chevron.left")
+                                        .font(.title2)
+                                        .foregroundColor(.accent)
+                                        .padding(.leading, 20)
+                                }
+                                Spacer()
+                            }
+                            .frame(height: 44)
+                            FriendView(username: username)
+                        }
+                    }
+                    .transition(.opacity)
+                    .zIndex(10)
                 }
             }
         }
