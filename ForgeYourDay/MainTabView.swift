@@ -13,17 +13,22 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            Group {
-                switch selectedTab {
-                case .home:
-                    HomeView()
-                case .add:
+            ZStack {
+                if selectedTab == .home {
+                    HomeView(username: username)
+                        .transition(.opacity)
+                }
+                if selectedTab == .add {
                     AddPostView(username: username)
-                case .profile:
+                        .transition(.opacity)
+                }
+                if selectedTab == .profile {
                     ProfileView(username: username, onLogout: onLogout, onUsernameChange: onUsernameChange)
+                        .transition(.opacity)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(.easeInOut, value: selectedTab)
             
             // Custom Tab Bar
             HStack {

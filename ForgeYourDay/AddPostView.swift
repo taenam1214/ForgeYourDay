@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct AddPostView: View {
-    let username: String
+    var username: String
     @State private var showTaskModal: Bool = false
     @State private var taskInputs: [String] = Array(repeating: "", count: 3)
     @State private var todaysTasks: [String] = []
@@ -60,7 +60,9 @@ struct AddPostView: View {
     func addNewTask() {
         let trimmed = newTaskText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        todaysTasks.append(trimmed)
+        withAnimation(.easeInOut(duration: 0.3)) {
+            todaysTasks.append(trimmed)
+        }
         let defaults = UserDefaults.standard
         defaults.setValue(todaysTasks, forKey: taskKey)
         defaults.setValue(Date(), forKey: taskDateKey)
@@ -68,17 +70,57 @@ struct AddPostView: View {
         showAddTaskField = false
     }
     
+    struct Comment: Codable, Hashable {
+        var username: String
+        let text: String
+    }
+
     struct CompletedTask: Codable, Identifiable {
-        let id: UUID
-        let username: String
+        var id: UUID
+        var username: String
         let task: String
         let description: String
         let imageData: Data? // Store image as Data
         let date: Date
-        var likes: Int
-        var comments: [String]
+        var likedBy: [String]
+        var comments: [Comment]
     }
 
+    // Migration helper: convert old posts to new format
+    static func migrateOldPostsIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: "completedTasks") else { return }
+        if let oldPosts = try? JSONDecoder().decode([OldCompletedTask].self, from: data) {
+            let migrated = oldPosts.map { old in
+                CompletedTask(
+                    id: old.id,
+                    username: old.username,
+                    task: old.task,
+                    description: old.description,
+                    imageData: old.imageData,
+                    date: old.date,
+                    likedBy: [], // Can't recover who liked, so start empty
+                    comments: old.comments
+                )
+            }
+            if let newData = try? JSONEncoder().encode(migrated) {
+                defaults.set(newData, forKey: "completedTasks")
+            }
+        }
+    }
+
+    // Old struct for migration
+    private struct OldCompletedTask: Codable, Identifiable {
+        var id: UUID
+        var username: String
+        let task: String
+        let description: String
+        let imageData: Data?
+        let date: Date
+        var likes: Int
+        var comments: [Comment]
+    }
+    
     func saveCompletedTask(_ completed: CompletedTask) {
         let defaults = UserDefaults.standard
         var all = (try? JSONDecoder().decode([CompletedTask].self, from: defaults.data(forKey: "completedTasks") ?? Data())) ?? []
@@ -91,44 +133,84 @@ struct AddPostView: View {
     
     var body: some View {
         NavigationView {
-            ZStack(alignment: .bottomTrailing) {
-                VStack(alignment: .leading, spacing: Theme.padding) {
-                    if !todaysTasks.isEmpty {
-                        Text("Today's Tasks:")
-                            .font(.headline)
-                            .padding(.top)
-                            .padding(.leading)
-                        ForEach(todaysTasks, id: \.self) { task in
-                            HStack {
-                                Text(task)
-                                    .font(.body)
-                                    .padding(.vertical, 14)
-                                    .padding(.horizontal, 16)
-                                    .background(Color.primaryLight)
-                                    .cornerRadius(Theme.cornerRadius * 1.5)
-                                    .shadow(color: Color.black.opacity(0.07), radius: 4, y: 2)
-                                    .foregroundColor(.primaryDark)
-                                    .onTapGesture {
-                                        selectedTask = task
-                                        showTaskDonePrompt = true
-                                    }
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            .padding(.vertical, 2)
-                        }
-                    } else {
-                        Text("No tasks set for today.")
-                            .foregroundColor(.secondary)
-                            .padding()
+            // Always reload tasks from storage when this view appears
+            // (Prevents loss of tasks when navigating back and forth)
+        }
+        .onAppear(perform: checkTaskStatus)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color.white.ignoresSafeArea())
+        ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 0) {
+                    // Header
+                    Spacer().frame(height: 32)
+                    VStack(spacing: 8) {
+                        Image(systemName: "calendar")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 36, height: 36)
+                            .foregroundColor(.accent)
+                        Text("Your Tasks for Today")
+                            .font(.manrope(size: 22, weight: .bold))
+                            .foregroundColor(.primaryDark)
+                            .multilineTextAlignment(.center)
                     }
-                    Spacer()
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 18)
+                    // Task List or Empty State
+                    if !todaysTasks.isEmpty {
+                        VStack(spacing: 14) {
+                            ForEach(todaysTasks, id: \.self) { task in
+                                HStack {
+                                    Text(task)
+                                        .font(.body)
+                                        .foregroundColor(.primaryDark)
+                                        .padding(.vertical, 14)
+                                        .padding(.horizontal, 16)
+                                    Spacer()
+                                }
+                                .background(Color.primaryLight)
+                                .cornerRadius(Theme.cornerRadius * 1.5)
+                                .shadow(color: Color.black.opacity(0.07), radius: 4, y: 2)
+                                .padding(.horizontal, 16)
+                                .onTapGesture {
+                                    selectedTask = task
+                                    showTaskDonePrompt = true
+                                }
+                                .transition(.move(edge: .leading).combined(with: .opacity))
+                            }
+                        }
+                        .padding(.top, 8)
+                        .padding(.bottom, 8)
+                        .frame(maxWidth: .infinity, alignment: .top)
+                        .animation(.easeInOut(duration: 0.3), value: todaysTasks)
+                    } else {
+                        VStack {
+                            Spacer()
+                            Image(systemName: "clipboard")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 44, height: 44)
+                                .foregroundColor(.secondary)
+                                .padding(.bottom, 8)
+                            Text("No tasks set for today.")
+                                .foregroundColor(.secondary)
+                                .font(.manrope(size: 18, weight: .medium))
+                                .multilineTextAlignment(.center)
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    Spacer(minLength: 0)
                 }
-                .onAppear(perform: checkTaskStatus)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(Color.white.ignoresSafeArea())
-                // Floating Action Button
+                // Floating Action Button (always anchored)
                 if !showAddTaskField && !showTaskModal {
-                    Button(action: { showAddTaskField = true }) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showAddTaskField = true
+                        }
+                    }) {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
@@ -156,7 +238,9 @@ struct AddPostView: View {
                             }
                             Button(action: {
                                 newTaskText = ""
-                                showAddTaskField = false
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showAddTaskField = false
+                                }
                             }) {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.secondary)
@@ -166,6 +250,10 @@ struct AddPostView: View {
                         .padding(.horizontal)
                         .padding(.bottom, 56)
                     }
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                        removal: .move(edge: .leading).combined(with: .opacity)
+                    ))
                 }
                 // Modal overlay
                 if showTaskModal {
@@ -320,7 +408,6 @@ struct AddPostView: View {
                     }
                 }
             }
-        }
         .sheet(isPresented: $showTaskCompletionSheet) {
             VStack(spacing: 24) {
                 Spacer().frame(height: 12)
@@ -415,7 +502,7 @@ struct AddPostView: View {
                                         description: capturedDescription,
                                         imageData: imageData,
                                         date: Date(),
-                                        likes: 0,
+                                        likedBy: [],
                                         comments: []
                                     )
                                     saveCompletedTask(completed)
@@ -429,7 +516,7 @@ struct AddPostView: View {
                                 description: capturedDescription,
                                 imageData: nil,
                                 date: Date(),
-                                likes: 0,
+                                likedBy: [],
                                 comments: []
                             )
                             saveCompletedTask(completed)
@@ -468,6 +555,8 @@ struct AddPostView: View {
     }
 }
 
-#Preview() {
-    AddPostView(username: "Taenam")
+struct AddPostView_Previews: PreviewProvider {
+    static var previews: some View {
+        AddPostView(username: "Taenam")
+    }
 }

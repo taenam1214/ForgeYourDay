@@ -6,9 +6,12 @@ struct RegisterView: View {
     @State private var username = ""
     @State private var password = ""
     @State private var confirmPassword = ""
-    var onRegister: () -> Void
+    var onRegister: (String) -> Void
     var onBack: () -> Void
     @State private var errorMessage = ""
+    @State private var usernameTaken = false
+    @State private var passwordMismatch = false
+    @State private var allFieldsFilled = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -50,6 +53,18 @@ struct RegisterView: View {
                     .background(Color.secondary.opacity(0.08))
                     .cornerRadius(Theme.cornerRadius)
                     .overlay(RoundedRectangle(cornerRadius: Theme.cornerRadius).stroke(Color.secondary.opacity(0.15)))
+                    .onChange(of: username) { newValue in
+                        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let defaults = UserDefaults.standard
+                        let registered = defaults.stringArray(forKey: "registeredUsernames") ?? ["Kimia", "Taenam", "Zay"]
+                        usernameTaken = !trimmed.isEmpty && registered.contains(trimmed)
+                        updateAllFieldsFilled()
+                    }
+                if usernameTaken {
+                    Text("Username already taken. Try a different username.")
+                        .font(.caption)
+                        .foregroundColor(.accent)
+                }
                 SecureField("Password", text: $password)
                     .font(.body)
                     .foregroundColor(.primaryDark)
@@ -59,6 +74,7 @@ struct RegisterView: View {
                     .background(Color.secondary.opacity(0.08))
                     .cornerRadius(Theme.cornerRadius)
                     .overlay(RoundedRectangle(cornerRadius: Theme.cornerRadius).stroke(Color.secondary.opacity(0.15)))
+                    .onChange(of: password) { _ in updatePasswordMatch() }
                 SecureField("Confirm Password", text: $confirmPassword)
                     .font(.body)
                     .foregroundColor(.primaryDark)
@@ -68,6 +84,12 @@ struct RegisterView: View {
                     .background(Color.secondary.opacity(0.08))
                     .cornerRadius(Theme.cornerRadius)
                     .overlay(RoundedRectangle(cornerRadius: Theme.cornerRadius).stroke(Color.secondary.opacity(0.15)))
+                    .onChange(of: confirmPassword) { _ in updatePasswordMatch() }
+                if passwordMismatch {
+                    Text("Passwords do not match.")
+                        .font(.caption)
+                        .foregroundColor(.accent)
+                }
             }
             .padding(.horizontal, Theme.padding)
             .padding(.bottom, Theme.padding * 1.5)
@@ -83,12 +105,13 @@ struct RegisterView: View {
                     .font(.manrope(size: 18, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Theme.smallPadding * 1.5)
-                    .background(Color.accent)
+                    .background((usernameTaken || passwordMismatch || !allFieldsFilled) ? Color.secondary : Color.accent)
                     .foregroundColor(.primaryLight)
                     .cornerRadius(Theme.cornerRadius)
             }
             .padding(.horizontal, Theme.padding)
             .padding(.top, Theme.padding)
+            .disabled(usernameTaken || passwordMismatch || !allFieldsFilled)
             // Back button
             Button(action: onBack) {
                 Text("Back")
@@ -104,6 +127,17 @@ struct RegisterView: View {
         )
     }
 
+    private func updatePasswordMatch() {
+        passwordMismatch = !password.isEmpty && !confirmPassword.isEmpty && password != confirmPassword
+        updateAllFieldsFilled()
+    }
+    private func updateAllFieldsFilled() {
+        allFieldsFilled = !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !password.isEmpty &&
+            !confirmPassword.isEmpty
+    }
     private func handleRegister() {
         let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -116,14 +150,18 @@ struct RegisterView: View {
             errorMessage = "Username already taken. Try a different username."
             return
         }
+        if password != confirmPassword {
+            errorMessage = "Passwords do not match."
+            return
+        }
         // Add new username to the list
         registered.append(trimmed)
         defaults.setValue(registered, forKey: "registeredUsernames")
         errorMessage = ""
-        onRegister()
+        onRegister(trimmed)
     }
 }
 
 #Preview {
-    RegisterView(onRegister: {}, onBack: {})
+    RegisterView(onRegister: { _ in }, onBack: {})
 } 

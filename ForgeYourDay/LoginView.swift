@@ -4,6 +4,8 @@ struct LoginView: View {
     @State private var username = ""
     @State private var password = ""
     @State private var showError = false
+    @State private var isLoggingIn = false
+    @State private var hasAppeared = false
     var onLogin: (String) -> Void
     var onRegister: () -> Void
     
@@ -51,7 +53,12 @@ struct LoginView: View {
                 let registered = defaults.stringArray(forKey: "registeredUsernames") ?? ["Kimia", "Taenam", "Zay"]
                 if registered.contains(username) && password == "chanceapp" {
                     showError = false
-                    onLogin(username)
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        isLoggingIn = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        onLogin(username)
+                    }
                 } else {
                     showError = true
                 }
@@ -73,6 +80,15 @@ struct LoginView: View {
             }
             .padding(.top, Theme.smallPadding)
             Spacer()
+        }
+        .opacity((hasAppeared && !isLoggingIn) ? 1 : 0)
+        .animation(.easeOut(duration: 0.3), value: isLoggingIn)
+        .animation(.easeIn(duration: 0.4), value: hasAppeared)
+        .onAppear {
+            hasAppeared = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation { hasAppeared = true }
+            }
         }
         .background(
             LinearGradient(gradient: Gradient(colors: [Color.primaryLight, Color.primaryLight.opacity(0.85)]), startPoint: .top, endPoint: .bottom)
