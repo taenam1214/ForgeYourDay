@@ -38,7 +38,7 @@ struct ContentView: View {
                         onLogout: {
                             loggedInUsername = nil
                             isAuthenticated = false
-                            showRegister = false // Always return to login screen
+                            showRegister = false // Always return to login screen after logout
                             // Clear persisted auth state
                             let defaults = UserDefaults.standard
                             defaults.setValue(false, forKey: authKey)
