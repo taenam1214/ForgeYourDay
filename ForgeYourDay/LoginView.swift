@@ -57,7 +57,7 @@ struct LoginView: View {
                         isLoggingIn = true
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        onLogin(username)
+                    onLogin(username)
                     }
                 } else {
                     showError = true

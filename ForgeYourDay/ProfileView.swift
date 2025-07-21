@@ -21,120 +21,120 @@ struct ProfileView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                VStack(spacing: Theme.padding * 1.5) {
+            VStack(spacing: Theme.padding * 1.5) {
                     Spacer().frame(height: 24)
-                    // Profile photo and upload button
-                    ZStack(alignment: .bottomTrailing) {
-                        (profileImage ?? Image(systemName: "person.crop.circle.fill"))
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 100, height: 100)
+                // Profile photo and upload button
+                ZStack(alignment: .bottomTrailing) {
+                    (profileImage ?? Image(systemName: "person.crop.circle.fill"))
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 100, height: 100)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.accent, lineWidth: 3))
+                        .shadow(radius: 6)
+                    Button(action: { showingImagePicker = true }) {
+                        Image(systemName: "camera.fill")
+                            .foregroundColor(.primaryLight)
+                            .padding(8)
+                            .background(Color.accent)
                             .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.accent, lineWidth: 3))
-                            .shadow(radius: 6)
-                        Button(action: { showingImagePicker = true }) {
-                            Image(systemName: "camera.fill")
-                                .foregroundColor(.primaryLight)
-                                .padding(8)
-                                .background(Color.accent)
-                                .clipShape(Circle())
-                                .shadow(radius: 2)
-                        }
-                        .offset(x: 4, y: 4)
+                            .shadow(radius: 2)
                     }
-                    // Username
-                    ZStack {
+                    .offset(x: 4, y: 4)
+                }
+                // Username
+                ZStack {
                         if !editingUsername {
-                            Text(username)
-                                .font(.manrope(size: 22, weight: .bold))
-                                .foregroundColor(.primaryDark)
-                                .frame(maxWidth: .infinity)
-                                .multilineTextAlignment(.center)
+                    Text(username)
+                        .font(.manrope(size: 22, weight: .bold))
+                        .foregroundColor(.primaryDark)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
                         }
                         if editingUsername {
-                            VStack(spacing: 6) {
-                                TextField("Username", text: $newUsername)
-                                    .font(.manrope(size: 22, weight: .bold))
-                                    .foregroundColor(.primaryDark)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 16)
-                                    .background(Color.primaryLight)
-                                    .cornerRadius(Theme.cornerRadius)
-                                    .frame(maxWidth: .infinity)
-                                    .multilineTextAlignment(.center)
-                                    .focused($usernameFieldFocused)
+                    VStack(spacing: 6) {
+                        TextField("Username", text: $newUsername)
+                            .font(.manrope(size: 22, weight: .bold))
+                            .foregroundColor(.primaryDark)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .background(Color.primaryLight)
+                            .cornerRadius(Theme.cornerRadius)
+                            .frame(maxWidth: .infinity)
+                            .multilineTextAlignment(.center)
+                            .focused($usernameFieldFocused)
                                 if !usernameError.isEmpty {
-                                    Text(usernameError)
-                                        .font(.caption)
-                                        .foregroundColor(.accent)
-                                }
-                            }
+                            Text(usernameError)
+                                .font(.caption)
+                                .foregroundColor(.accent)
                         }
+                    }
+                }
                     }
                     .frame(height: 54)
-                    .onChange(of: editingUsername) { editing in
-                        if editing {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                usernameFieldFocused = true
-                            }
+                .onChange(of: editingUsername) { editing in
+                    if editing {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            usernameFieldFocused = true
                         }
                     }
-                    // Motivational quote
-                    Text(motivationalQuote)
-                        .font(.inter(size: 15))
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.padding)
-                    Divider().padding(.horizontal, Theme.padding)
-                    // Tasks completed
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .foregroundColor(.accent)
-                        Text("Tasks completed today:")
-                            .font(.body)
-                            .foregroundColor(.primaryDark)
-                        Text("\(tasksCompleted)")
-                            .font(.manrope(size: 18, weight: .bold))
-                            .foregroundColor(.accent)
-                    }
-                    .padding(.vertical, Theme.smallPadding)
-                    // Edit Profile or Save/Cancel buttons
-                    if editingUsername {
-                        HStack(spacing: 16) {
+                }
+                // Motivational quote
+                Text(motivationalQuote)
+                    .font(.inter(size: 15))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Theme.padding)
+                Divider().padding(.horizontal, Theme.padding)
+                // Tasks completed
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundColor(.accent)
+                    Text("Tasks completed today:")
+                        .font(.body)
+                        .foregroundColor(.primaryDark)
+                    Text("\(tasksCompleted)")
+                        .font(.manrope(size: 18, weight: .bold))
+                        .foregroundColor(.accent)
+                }
+                .padding(.vertical, Theme.smallPadding)
+                // Edit Profile or Save/Cancel buttons
+                if editingUsername {
+                    HStack(spacing: 16) {
                             Button(action: { withAnimation { saveUsername() } }) {
-                                Text("Save")
-                                    .font(.manrope(size: 16, weight: .semibold))
-                                    .frame(maxWidth: .infinity, minHeight: 48)
-                                    .background(Color.accent)
-                                    .foregroundColor(.primaryLight)
-                                    .cornerRadius(Theme.cornerRadius)
-                            }
-                            Button(action: { withAnimation { editingUsername = false; usernameError = "" } }) {
-                                Text("Cancel")
-                                    .font(.manrope(size: 16, weight: .regular))
-                                    .frame(maxWidth: .infinity, minHeight: 48)
-                                    .background(Color.secondary.opacity(0.12))
-                                    .foregroundColor(.secondary)
-                                    .cornerRadius(Theme.cornerRadius)
-                            }
-                        }
-                        .padding(.horizontal, Theme.padding)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    } else {
-                        Button(action: {
-                            withAnimation {
-                                newUsername = username
-                                editingUsername = true
-                            }
-                        }) {
-                            Text("Edit Profile")
+                            Text("Save")
                                 .font(.manrope(size: 16, weight: .semibold))
                                 .frame(maxWidth: .infinity, minHeight: 48)
                                 .background(Color.accent)
                                 .foregroundColor(.primaryLight)
                                 .cornerRadius(Theme.cornerRadius)
                         }
-                        .padding(.horizontal, Theme.padding)
+                            Button(action: { withAnimation { editingUsername = false; usernameError = "" } }) {
+                            Text("Cancel")
+                                .font(.manrope(size: 16, weight: .regular))
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                                .background(Color.secondary.opacity(0.12))
+                                .foregroundColor(.secondary)
+                                .cornerRadius(Theme.cornerRadius)
+                        }
+                    }
+                    .padding(.horizontal, Theme.padding)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                } else {
+                    Button(action: {
+                            withAnimation {
+                        newUsername = username
+                        editingUsername = true
+                            }
+                    }) {
+                        Text("Edit Profile")
+                            .font(.manrope(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(Color.accent)
+                            .foregroundColor(.primaryLight)
+                            .cornerRadius(Theme.cornerRadius)
+                    }
+                    .padding(.horizontal, Theme.padding)
                         Button(action: { withAnimation { showFriendsScreen = true } }) {
                             Text("Friends")
                                 .font(.manrope(size: 16, weight: .semibold))
@@ -144,33 +144,33 @@ struct ProfileView: View {
                                 .cornerRadius(Theme.cornerRadius)
                         }
                         .padding(.horizontal, Theme.padding)
-                    }
+                }
                     // Logout button (hide when editing profile)
                     if !editingUsername {
                         Button(action: { withAnimation(.easeOut(duration: 0.3)) { showLogoutPrompt = true } }) {
-                            Text("Log Out")
-                                .font(.manrope(size: 16, weight: .semibold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Theme.smallPadding * 1.5)
-                                .background(Color.secondary)
-                                .foregroundColor(.primaryLight)
-                                .cornerRadius(Theme.cornerRadius)
-                        }
-                        .padding(.horizontal, Theme.padding)
-                        .padding(.top, 4)
+                    Text("Log Out")
+                        .font(.manrope(size: 16, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Theme.smallPadding * 1.5)
+                        .background(Color.secondary)
+                        .foregroundColor(.primaryLight)
+                        .cornerRadius(Theme.cornerRadius)
+                }
+                .padding(.horizontal, Theme.padding)
+                .padding(.top, 4)
                     }
-                    Spacer()
-                }
+                Spacer()
+            }
                 .onAppear(perform: countTasksCompletedToday)
-                .background(
-                    LinearGradient(gradient: Gradient(colors: [Color.primaryLight, Color.primaryLight.opacity(0.85)]), startPoint: .top, endPoint: .bottom)
-                        .ignoresSafeArea()
-                )
-                .sheet(isPresented: $showingImagePicker) {
-                    // Placeholder for image picker
-                    Text("Image Picker goes here")
-                        .font(.body)
-                }
+            .background(
+                LinearGradient(gradient: Gradient(colors: [Color.primaryLight, Color.primaryLight.opacity(0.85)]), startPoint: .top, endPoint: .bottom)
+                    .ignoresSafeArea()
+            )
+            .sheet(isPresented: $showingImagePicker) {
+                // Placeholder for image picker
+                Text("Image Picker goes here")
+                    .font(.body)
+            }
                 // Custom logout confirmation overlay
                 if showLogoutPrompt {
                     ZStack {
@@ -266,7 +266,7 @@ struct ProfileView: View {
         }.count
         tasksCompleted = count
     }
-
+    
     private func saveUsername() {
         let trimmed = newUsername.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {

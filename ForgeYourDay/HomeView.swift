@@ -52,7 +52,7 @@ struct HomeView: View {
             let newComment = AddPostView.Comment(username: username, text: comment)
             completedTasks[idx].comments.append(newComment)
             print("[DEBUG] Comments after: \(completedTasks[idx].comments.count)")
-            saveTasks()
+        saveTasks()
         } else {
             print("[DEBUG] Post not found in completedTasks for id: \(task.id)")
         }
@@ -99,13 +99,13 @@ struct HomeView: View {
                                 .foregroundColor(.accent)
                                 .padding(.bottom, 12)
                                 .opacity(0.85)
-                            Text("No completed tasks yet.")
+                        Text("No completed tasks yet.")
                                 .font(.manrope(size: 20, weight: .semibold))
                                 .foregroundColor(.primaryDark)
                                 .padding(.bottom, 4)
                             Text("Complete a task to see it here!")
                                 .font(.manrope(size: 16, weight: .regular))
-                                .foregroundColor(.secondary)
+                            .foregroundColor(.secondary)
                             Spacer()
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -119,9 +119,9 @@ struct HomeView: View {
                                         .frame(width: 36, height: 36)
                                         .foregroundColor(.accent)
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text(post.username)
-                                            .font(.headline)
-                                            .foregroundColor(.primaryDark)
+                                    Text(post.username)
+                                        .font(.headline)
+                                        .foregroundColor(.primaryDark)
                                         Text(post.task.isEmpty ? "No title provided." : post.task)
                                             .font(.subheadline)
                                             .fontWeight(.semibold)
@@ -142,8 +142,8 @@ struct HomeView: View {
                                 }
                                 // Always show description, with placeholder if empty
                                 Text(post.description.isEmpty ? "No description provided." : post.description)
-                                    .font(.body)
-                                    .foregroundColor(.primaryDark)
+                                        .font(.body)
+                                        .foregroundColor(.primaryDark)
                                 HStack(spacing: 18) {
                                     Button(action: { likeTask(post) }) {
                                         HStack(spacing: 4) {
@@ -178,7 +178,7 @@ struct HomeView: View {
                                                     .fontWeight(.semibold)
                                                     .foregroundColor(.accent)
                                                 Text(comment.text)
-                                                    .font(.caption)
+                                                .font(.caption)
                                                     .foregroundColor(.primaryDark)
                                             }
                                             .padding(8)
@@ -228,7 +228,7 @@ struct HomeView: View {
                                                 .padding(.horizontal, 8)
                                                 .background(Color.secondary.opacity(0.12))
                                                 .cornerRadius(8)
-                                        }
+                                    }
                                     }
                                     .padding(8)
                                     .background(Color.secondary.opacity(0.08))

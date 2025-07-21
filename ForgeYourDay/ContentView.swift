@@ -29,52 +29,52 @@ struct ContentView: View {
         ZStack {
             Color.primaryLight.ignoresSafeArea()
             ZStack {
-                if isAuthenticated, let _ = loggedInUsername {
-                    MainTabView(
-                        username: Binding(
-                            get: { loggedInUsername ?? "" },
-                            set: { loggedInUsername = $0 }
-                        ),
-                        onLogout: {
-                            loggedInUsername = nil
-                            isAuthenticated = false
+            if isAuthenticated, let _ = loggedInUsername {
+                MainTabView(
+                    username: Binding(
+                        get: { loggedInUsername ?? "" },
+                        set: { loggedInUsername = $0 }
+                    ),
+                    onLogout: {
+                        loggedInUsername = nil
+                        isAuthenticated = false
                             showRegister = false // Always return to login screen after logout
-                            // Clear persisted auth state
-                            let defaults = UserDefaults.standard
-                            defaults.setValue(false, forKey: authKey)
-                            defaults.removeObject(forKey: usernameKey)
-                        },
-                        onUsernameChange: { newUsername in
-                            loggedInUsername = newUsername
-                            let defaults = UserDefaults.standard
-                            defaults.setValue(newUsername, forKey: usernameKey)
-                        }
-                    )
+                        // Clear persisted auth state
+                        let defaults = UserDefaults.standard
+                        defaults.setValue(false, forKey: authKey)
+                        defaults.removeObject(forKey: usernameKey)
+                    },
+                    onUsernameChange: { newUsername in
+                        loggedInUsername = newUsername
+                        let defaults = UserDefaults.standard
+                        defaults.setValue(newUsername, forKey: usernameKey)
+                    }
+                )
                     .transition(.opacity)
-                } else {
-                    if showRegister {
-                        RegisterView(
+            } else {
+                if showRegister {
+                    RegisterView(
                             onRegister: { username in
                                 loggedInUsername = username
-                                isAuthenticated = true
-                                let defaults = UserDefaults.standard
-                                defaults.setValue(true, forKey: authKey)
+                            isAuthenticated = true
+                            let defaults = UserDefaults.standard
+                            defaults.setValue(true, forKey: authKey)
                                 defaults.setValue(username, forKey: usernameKey)
-                            },
-                            onBack: { showRegister = false }
-                        )
+                        },
+                        onBack: { showRegister = false }
+                    )
                         .transition(.opacity)
-                    } else {
-                        LoginView(
-                            onLogin: { username in
-                                loggedInUsername = username
-                                isAuthenticated = true
-                                let defaults = UserDefaults.standard
-                                defaults.setValue(true, forKey: authKey)
-                                defaults.setValue(username, forKey: usernameKey)
-                            },
-                            onRegister: { showRegister = true }
-                        )
+                } else {
+                    LoginView(
+                        onLogin: { username in
+                            loggedInUsername = username
+                            isAuthenticated = true
+                            let defaults = UserDefaults.standard
+                            defaults.setValue(true, forKey: authKey)
+                            defaults.setValue(username, forKey: usernameKey)
+                        },
+                        onRegister: { showRegister = true }
+                    )
                         .transition(.opacity)
                     }
                 }
