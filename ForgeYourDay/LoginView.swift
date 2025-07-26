@@ -51,13 +51,26 @@ struct LoginView: View {
             Button(action: {
                 let defaults = UserDefaults.standard
                 let registered = defaults.stringArray(forKey: "registeredUsernames") ?? ["Kimia", "Taenam", "Zay"]
-                if registered.contains(username) && password == "chanceapp" {
+                
+                // Check if username exists
+                guard registered.contains(username) else {
+                    showError = true
+                    return
+                }
+                
+                // Get stored password for this username
+                let storedPassword = defaults.string(forKey: "password_\(username)")
+                
+                // For existing users (Kimia, Taenam, Zay), use "chanceapp" as default password
+                let expectedPassword = storedPassword ?? "chanceapp"
+                
+                if password == expectedPassword {
                     showError = false
                     withAnimation(.easeOut(duration: 0.3)) {
                         isLoggingIn = true
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    onLogin(username)
+                        onLogin(username)
                     }
                 } else {
                     showError = true

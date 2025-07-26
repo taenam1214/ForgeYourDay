@@ -286,6 +286,14 @@ struct ProfileView: View {
         }
         registered.append(trimmed)
         defaults.setValue(registered, forKey: "registeredUsernames")
+        
+        // Migrate password from old username to new username
+        let oldPasswordKey = "password_\(username)"
+        let newPasswordKey = "password_\(trimmed)"
+        if let oldPassword = defaults.string(forKey: oldPasswordKey) {
+            defaults.setValue(oldPassword, forKey: newPasswordKey)
+            defaults.removeObject(forKey: oldPasswordKey)
+        }
         // Save new username
         let oldUsername = username
         username = trimmed
@@ -298,6 +306,7 @@ struct ProfileView: View {
     }
 
     // Migrate all references from oldUsername to newUsername
+    // Note: Password migration is handled in saveUsername() before calling this function
     private func migrateUsername(from oldUsername: String, to newUsername: String) {
         let defaults = UserDefaults.standard
         // 1. Rename friends_<old> to friends_<new>

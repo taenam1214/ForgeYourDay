@@ -157,6 +157,10 @@ struct RegisterView: View {
         // Add new username to the list
         registered.append(trimmed)
         defaults.setValue(registered, forKey: "registeredUsernames")
+        
+        // Store the password for this username
+        defaults.setValue(password, forKey: "password_\(trimmed)")
+        
         errorMessage = ""
         onRegister(trimmed)
     }
